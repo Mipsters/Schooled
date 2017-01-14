@@ -1,7 +1,9 @@
 package net.ddns.mipster.schooled;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
@@ -12,10 +14,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,9 +31,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private GoogleApiClient client;
 
+    private MyListAdaptor adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,42 +84,6 @@ public class MainActivity extends AppCompatActivity {
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-    }
-
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("Main Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
     }
 
     /**
@@ -178,24 +153,76 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public class InternetTask extends AsyncTask<Void, Void, Void> {
-        String out;
+        Element[] elements;
 
         @Override
         protected Void doInBackground(Void... voids) {
             try {
                 Document doc = Jsoup.connect("http://www.handasaim.co.il/").get();
                 Elements newsHeadlines = doc.select("marquee > table > tbody > tr > td");
-                out = newsHeadlines.toString().replace("<br>","").replace(">",">\n");
+                String[] data = newsHeadlines.html().split(String.format("(?=%1$s)", "<sup>"));
+                elements = new Element[data.length - 1];
+                for (int i = 1; i < data.length; i++)
+                    elements[i - 1] = Jsoup.parse(data[i]).body().getAllElements().first();
             } catch (IOException e) {
-                throw new RuntimeException();
+                this.cancel(true);
             }
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            TextView textView = (TextView) mViewPager.findViewById(R.id.section_label);
-            textView.setText(out);
+            ListView listView = (ListView)mViewPager.findViewById(R.id.list);
+            adapter = new MyListAdaptor(MainActivity.this,R.layout.list_item,elements);
+            listView.setAdapter(adapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    new ListItemTask().execute(i, adapter);
+                }
+            });
         }
+
+        @Override
+        protected void onCancelled() {
+            Snackbar.make(mViewPager, "Couldn't connect to www.handasaim.co.il\n" +
+                    "check your internet connection",Snackbar.LENGTH_INDEFINITE).show();
+        }
+    }
+
+    public class ListItemTask extends AsyncTask<Object, Void, Void> {
+        Uri uriUrl;
+
+        @Override
+        protected Void doInBackground(Object... objects) {
+            int i = (int)objects[0];
+            MyListAdaptor adapter = (MyListAdaptor)objects[1];
+            String normalUrl = adapter.getItem(i).select("a").first().attr("href").replace(" ",""),
+                   handasUrl = "http://www.handasaim.co.il/" + normalUrl;
+
+            if(urlChecker(normalUrl))
+                uriUrl = Uri.parse(normalUrl);
+            else if(urlChecker(handasUrl))
+                uriUrl = Uri.parse(handasUrl);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if(uriUrl != null) {
+                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+                MainActivity.this.startActivity(launchBrowser);
+            }
+        }
+    }
+
+    public boolean urlChecker(String url){
+        try {
+            new URL(url);
+        } catch(java.net.MalformedURLException e) {
+            return false;
+        }
+        return true;
     }
 }
