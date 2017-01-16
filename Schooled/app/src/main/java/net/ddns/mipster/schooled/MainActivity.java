@@ -24,20 +24,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -77,6 +69,12 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(mViewPager);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        new InternetTask().execute();
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -107,7 +105,10 @@ public class MainActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            if(getArguments().getInt(ARG_SECTION_NUMBER) == 1)
+                textView.setVisibility(View.GONE);
+            else
+                textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
             return rootView;
         }
     }
@@ -155,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                 elements = new Element[data.length - 1];
                 for (int i = 1; i < data.length; i++)
                     elements[i - 1] = Jsoup.parse(data[i]).body().getAllElements().first();
-            } catch (IOException e) {
+            } catch (java.io.IOException e) {
                 this.cancel(true);
             }
             return null;
