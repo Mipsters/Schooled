@@ -1,5 +1,6 @@
 package net.ddns.mipster.schooled;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -50,10 +51,18 @@ public class MainActivity extends AppCompatActivity {
 
     private MyListAdaptor adapter;
 
+    private ProgressDialog dialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("loading app");
+        dialog.setCancelable(false);
+        dialog.setInverseBackgroundForced(false);
+        dialog.show();
 
         new InternetTask().execute();
 
@@ -173,10 +182,14 @@ public class MainActivity extends AppCompatActivity {
                     new ListItemTask().execute(i, adapter);
                 }
             });
+
+            dialog.cancel();
         }
 
         @Override
         protected void onCancelled() {
+            dialog.cancel();
+
             Snackbar.make(mViewPager, "Couldn't connect to www.handasaim.co.il\n" +
                     "check your internet connection",Snackbar.LENGTH_INDEFINITE).show();
         }
