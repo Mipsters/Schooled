@@ -1,13 +1,9 @@
 package net.ddns.mipster.schooled;
 
-import android.app.ProgressDialog;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.support.design.widget.Snackbar;
+import android.os.Handler;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerAdapter;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.app.Fragment;
@@ -15,32 +11,17 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
     /**
-     * The {@link PagerAdapter} that will provide
+     * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
      * {@link FragmentPagerAdapter} derivative, which will keep every
      * loaded fragment in memory. If this becomes too memory intensive, it
      * may be best to switch to a
-     * {@link FragmentStatePagerAdapter}.
+     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
@@ -49,22 +30,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
 
-    private MyListAdaptor adapter;
-
-    private ProgressDialog dialog;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        dialog = new ProgressDialog(this);
-        dialog.setMessage("loading app");
-        dialog.setCancelable(false);
-        dialog.setInverseBackgroundForced(false);
-        dialog.show();
-
-        new InternetTask().execute();
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -74,52 +45,26 @@ public class MainActivity extends AppCompatActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        new InternetTask().execute();
-    }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            if(getArguments().getInt(ARG_SECTION_NUMBER) == 1)
-                textView.setVisibility(View.GONE);
-            else
-                textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
+        swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swiperefresh);
+        swipeRefreshLayout.setColorSchemeColors(
+                ContextCompat.getColor(this, android.R.color.holo_blue_bright ),
+                ContextCompat.getColor(this, android.R.color.holo_green_light ),
+                ContextCompat.getColor(this, android.R.color.holo_orange_light),
+                ContextCompat.getColor(this, android.R.color.holo_red_light   ));
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override public void run() {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }, 5000);
+            }
+        });
     }
 
     /**
@@ -132,102 +77,27 @@ public class MainActivity extends AppCompatActivity {
             super(fm);
         }
 
-        String[] titles = {"SECTION 1", "SECTION 2", "SECTION 3", "MIP"};
-
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            switch (position){
+                case 0:
+                    return new AnnouncementFragment();
+                case 1:
+                    return new ScheduleFragment();
+                case 2:
+                    return new TimetableFragment();
+            }
+            return null;
         }
 
         @Override
         public int getCount() {
-            // Show 4 total pages.
-            return 4;
+            return 3;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return titles[position];
+            return getResources().getStringArray(R.array.fragment_names)[position];
         }
-    }
-
-    public class InternetTask extends AsyncTask<Void, Void, Void> {
-        Element[] elements;
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                Document doc = Jsoup.connect("http://www.handasaim.co.il/").get();
-                Elements newsHeadlines = doc.select("marquee > table > tbody > tr > td");
-                String[] data = newsHeadlines.html().split(String.format("(?=%1$s)", "<sup>"));
-                elements = new Element[data.length - 1];
-                for (int i = 1; i < data.length; i++)
-                    elements[i - 1] = Jsoup.parse(data[i]).body().getAllElements().first();
-            } catch (java.io.IOException e) {
-                this.cancel(true);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            ListView listView = (ListView)mViewPager.findViewById(R.id.list);
-            adapter = new MyListAdaptor(MainActivity.this,R.layout.list_item,elements);
-            listView.setAdapter(adapter);
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    new ListItemTask().execute(i, adapter);
-                }
-            });
-
-            dialog.cancel();
-        }
-
-        @Override
-        protected void onCancelled() {
-            dialog.cancel();
-
-            Snackbar.make(mViewPager, "Couldn't connect to www.handasaim.co.il\n" +
-                    "check your internet connection",Snackbar.LENGTH_INDEFINITE).show();
-        }
-    }
-
-    public class ListItemTask extends AsyncTask<Object, Void, Void> {
-        Uri uriUrl;
-
-        @Override
-        protected Void doInBackground(Object... objects) {
-            int i = (int)objects[0];
-            MyListAdaptor adapter = (MyListAdaptor)objects[1];
-            String normalUrl = adapter.getItem(i).select("a").first().attr("href").replace(" ",""),
-                   handasUrl = "http://www.handasaim.co.il/" + normalUrl;
-
-            if(urlChecker(normalUrl))
-                uriUrl = Uri.parse(normalUrl);
-            else if(urlChecker(handasUrl))
-                uriUrl = Uri.parse(handasUrl);
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            if(uriUrl != null) {
-                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
-                MainActivity.this.startActivity(launchBrowser);
-            }
-        }
-    }
-
-    public boolean urlChecker(String url){
-        try {
-            new URL(url);
-        } catch(java.net.MalformedURLException e) {
-            return false;
-        }
-        return true;
     }
 }
