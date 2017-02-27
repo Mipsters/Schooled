@@ -1,6 +1,8 @@
 package net.ddns.mipster.schooled;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,6 +50,11 @@ public class AnnouncementListAdapter extends BaseAdapter {
         date.setText(data.get(position).getDate());
         title.setText(data.get(position).getTitle());
         text.setText(data.get(position).getText());
+
+        if(!data.get(position).getUrl().isEmpty()) {
+            title.setTextColor(Color.parseColor("#3366BB"));
+            title.setPaintFlags(title.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        }
 
         return convertView;
     }
