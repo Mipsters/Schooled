@@ -15,6 +15,15 @@ public class TimetableFragment extends Fragment {
 
     public TimetableFragment(){}
 
+    public static TimetableFragment newInstance() {
+        
+        Bundle args = new Bundle();
+        
+        TimetableFragment fragment = new TimetableFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

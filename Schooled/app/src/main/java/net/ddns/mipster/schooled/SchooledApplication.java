@@ -1,7 +1,6 @@
 package net.ddns.mipster.schooled;
 
 import android.app.Application;
-import android.widget.Toast;
 
 
 /**
@@ -9,6 +8,8 @@ import android.widget.Toast;
  */
 
 public class SchooledApplication extends Application {
+
+    public static final String ANNOUNCEMENT_DATA = "net.ddns.mipster.schooled.scheduleData";
 
     public SchooledApplication(){}
 

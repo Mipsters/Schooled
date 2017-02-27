@@ -1,9 +1,6 @@
 package net.ddns.mipster.schooled;
 
-import android.os.Handler;
 import android.support.design.widget.TabLayout;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.app.Fragment;
@@ -11,7 +8,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
 
-    private SwipeRefreshLayout swipeRefreshLayout;
+    //private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(mViewPager);
 
 
+        /*
         swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swiperefresh);
         swipeRefreshLayout.setColorSchemeColors(
                 ContextCompat.getColor(this, android.R.color.holo_blue_bright ),
@@ -65,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 }, 5000);
             }
         });
+        */
     }
 
     /**
@@ -81,11 +81,12 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    return new AnnouncementFragment();
+                    return AnnouncementFragment.newInstance((ArrayList<AnnouncementItemData>)
+                            getIntent().getSerializableExtra(SchooledApplication.ANNOUNCEMENT_DATA));
                 case 1:
-                    return new ScheduleFragment();
+                    return ScheduleFragment.newInstance();
                 case 2:
-                    return new TimetableFragment();
+                    return TimetableFragment.newInstance();
             }
             return null;
         }
