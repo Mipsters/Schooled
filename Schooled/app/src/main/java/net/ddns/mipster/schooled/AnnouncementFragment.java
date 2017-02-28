@@ -2,20 +2,22 @@ package net.ddns.mipster.schooled;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -46,9 +48,25 @@ public class AnnouncementFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_announcement, container, false);
 
-
         swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefreshLayout);
         listView = (ListView) rootView.findViewById(R.id.listView);
+
+        swipeRefreshLayout.setColorSchemeColors(
+                Color.BLUE,
+                Color.CYAN,
+                Color.GRAY,
+                Color.GREEN,
+                Color.MAGENTA,
+                Color.RED,
+                Color.YELLOW
+        );
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new GeneralDataTask().execute();
+            }
+        });
 
         final ArrayList<AnnouncementItemData> data = (ArrayList<AnnouncementItemData>)
                 getArguments().getSerializable(SchooledApplication.ANNOUNCEMENT_DATA);
@@ -96,5 +114,64 @@ public class AnnouncementFragment extends Fragment {
             return false;
         }
         return true;
+    }
+
+    class GeneralDataTask extends AsyncTask<Void,String,Void> {
+        private ArrayList<AnnouncementItemData> announcementData;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Document doc;
+            announcementData = new ArrayList<>();
+            try {
+                doc = Jsoup.connect("http://www.handasaim.co.il/").get();
+            } catch (java.io.IOException e) {
+                cancel(true);
+                return null;
+            }
+            if(doc != null) {
+                Elements newsHeadlines = doc.select("marquee > table > tbody > tr > td");
+                String[] data = newsHeadlines.html().split(String.format("(?=%1$s)", "<sup>"));
+                String[] newData = new String[data.length - 1];
+
+                System.arraycopy(data,1,newData,0,data.length - 1);
+
+                for(String str : newData){
+                    Document document = Jsoup.parse(str);
+
+                    String dataStr = document.select("sup").html();
+                    String date = dataStr.substring(1,dataStr.length() - 1);
+
+                    dataStr = document.select("b").html();
+                    String title = dataStr;
+
+                    String url = document.select("a").attr("href").replace(" ","");
+
+                    document = Jsoup.parse(document.toString()
+                            .replace(document.select("sup").toString(),"")
+                            .replace(document.select("b").toString(),"")
+                            .replace(document.select("a").toString(),""));
+
+                    String text = document.select("body").html()
+                            .replace("<br>","\n").replaceAll("(?m)^[ \t]*\r?\n", "");
+
+                    announcementData.add(new AnnouncementItemData(title,date,text,url));
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            Snackbar.make(getView(),
+                    "Internet connection failed",Snackbar.LENGTH_SHORT).show();
+            swipeRefreshLayout.setRefreshing(false);
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            listView.setAdapter(new AnnouncementListAdapter(getContext(), announcementData));
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 }

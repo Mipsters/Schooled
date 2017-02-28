@@ -29,4 +29,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     compile 'org.jsoup:jsoup:1.10.2'
+    compile 'com.wang.avi:library:2.1.3'
 }

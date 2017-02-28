@@ -6,7 +6,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,23 +15,29 @@ import java.util.ArrayList;
 
 public class LoadingActivity extends AppCompatActivity {
 
+    GeneralDataTask generalDataTask;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
 
-        new GeneralDataTask().execute();
+        com.wang.avi.AVLoadingIndicatorView progressBar =
+                (com.wang.avi.AVLoadingIndicatorView) findViewById(R.id.load);
+        progressBar.show();
+
+        if(generalDataTask == null) {
+            generalDataTask = new GeneralDataTask();
+            generalDataTask.execute();
+        }
     }
 
     class GeneralDataTask extends AsyncTask<Void,String,Void>{
-        private ProgressBar progressBar;
-        private ArrayList<AnnouncementItemData> scheduleData;
+        private ArrayList<AnnouncementItemData> announcementData;
 
         @Override
         protected void onPreExecute() {
-            progressBar = (ProgressBar)findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
-            scheduleData = new ArrayList<>();
+            announcementData = new ArrayList<>();
         }
 
         @Override
@@ -70,7 +75,7 @@ public class LoadingActivity extends AppCompatActivity {
                     String text = document.select("body").html()
                             .replace("<br>","\n").replaceAll("(?m)^[ \t]*\r?\n", "");
 
-                    scheduleData.add(new AnnouncementItemData(title,date,text,url));
+                    announcementData.add(new AnnouncementItemData(title,date,text,url));
                 }
             }
             return null;
@@ -91,7 +96,7 @@ public class LoadingActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             Intent mainActivity = new Intent(LoadingActivity.this, MainActivity.class);
 
-            mainActivity.putExtra(SchooledApplication.ANNOUNCEMENT_DATA, scheduleData);
+            mainActivity.putExtra(SchooledApplication.ANNOUNCEMENT_DATA, announcementData);
 
             startActivity(mainActivity);
             finish();
