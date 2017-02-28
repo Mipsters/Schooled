@@ -52,13 +52,9 @@ public class AnnouncementFragment extends Fragment {
         listView = (ListView) rootView.findViewById(R.id.listView);
 
         swipeRefreshLayout.setColorSchemeColors(
-                Color.BLUE,
-                Color.CYAN,
-                Color.GRAY,
-                Color.GREEN,
-                Color.MAGENTA,
                 Color.RED,
-                Color.YELLOW
+                Color.GREEN,
+                Color.BLUE
         );
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -121,50 +117,18 @@ public class AnnouncementFragment extends Fragment {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            Document doc;
-            announcementData = new ArrayList<>();
-            try {
-                doc = Jsoup.connect("http://www.handasaim.co.il/").get();
-            } catch (java.io.IOException e) {
+            announcementData = LoadingActivity.parceAnnouncementData();
+
+            if(announcementData == null)
                 cancel(true);
-                return null;
-            }
-            if(doc != null) {
-                Elements newsHeadlines = doc.select("marquee > table > tbody > tr > td");
-                String[] data = newsHeadlines.html().split(String.format("(?=%1$s)", "<sup>"));
-                String[] newData = new String[data.length - 1];
 
-                System.arraycopy(data,1,newData,0,data.length - 1);
-
-                for(String str : newData){
-                    Document document = Jsoup.parse(str);
-
-                    String dataStr = document.select("sup").html();
-                    String date = dataStr.substring(1,dataStr.length() - 1);
-
-                    dataStr = document.select("b").html();
-                    String title = dataStr;
-
-                    String url = document.select("a").attr("href").replace(" ","");
-
-                    document = Jsoup.parse(document.toString()
-                            .replace(document.select("sup").toString(),"")
-                            .replace(document.select("b").toString(),"")
-                            .replace(document.select("a").toString(),""));
-
-                    String text = document.select("body").html()
-                            .replace("<br>","\n").replaceAll("(?m)^[ \t]*\r?\n", "");
-
-                    announcementData.add(new AnnouncementItemData(title,date,text,url));
-                }
-            }
             return null;
         }
 
         @Override
         protected void onCancelled() {
             Snackbar.make(getView(),
-                    "Internet connection failed",Snackbar.LENGTH_SHORT).show();
+                    "Internet connection error",Snackbar.LENGTH_SHORT).show();
             swipeRefreshLayout.setRefreshing(false);
         }
 
