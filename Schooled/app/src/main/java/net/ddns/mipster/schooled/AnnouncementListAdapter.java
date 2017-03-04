@@ -11,9 +11,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-/**
- * Created by Chen on 26/02/2017.
- */
 
 public class AnnouncementListAdapter extends BaseAdapter {
     private ArrayList<AnnouncementItemData> data;
@@ -30,18 +27,18 @@ public class AnnouncementListAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int arg0) {
-        return data.get(arg0);
+    public Object getItem(int position) {
+        return data.get(position);
     }
 
     @Override
-    public long getItemId(int arg0) {
-        return arg0;
+    public long getItemId(int position) {
+        return position;
     }
 
 
     public View getView(int position, View convertView, ViewGroup parent) {
-        convertView = mInflater.inflate(R.layout.list_item, null);
+        convertView = mInflater.inflate(R.layout.announcement_list_item, null);
 
         TextView date = (TextView) convertView.findViewById(R.id.date);
         TextView title = (TextView) convertView.findViewById(R.id.title);

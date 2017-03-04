@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">Schooled</string>
     <string-array name="fragment_names">
-        <item>Announcements</item>
-        <item>Schedule</item>
-        <item>Time Table</item>
+        <item>חדשות</item>
+        <item>מערכת</item>
+        <item>לוח צלצולים</item>
     </string-array>
+    <string name="title_activity_temp">Temp</string>
 </resources>

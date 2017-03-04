@@ -9,7 +9,8 @@ import android.app.Application;
 
 public class SchooledApplication extends Application {
 
-    public static final String ANNOUNCEMENT_DATA = "net.ddns.mipster.schooled.scheduleData";
+    public static final String ANNOUNCEMENT_DATA = "net.ddns.mipster.schooled.announcementData";
+    public static final String SCHEDULE_DATA = "net.ddns.mipster.schooled.scheduleData";
 
     public SchooledApplication(){}
 
