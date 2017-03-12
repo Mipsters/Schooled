@@ -156,7 +156,7 @@ public class LoadingActivity extends AppCompatActivity {
             for(AnnouncementItemData id : announcementData)
                 if(id.getUrl().contains("s3-eu-west-1.amazonaws.com/schooly/handasaim/news") &&
                         (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
-                    String end = id.getUrl().contains(".xls") ? ".xls" : ".xlsx";
+                    boolean isX = id.getUrl().contains(".xlsx");
                     String date = id.getDate();
 
                     /*
@@ -178,12 +178,12 @@ public class LoadingActivity extends AppCompatActivity {
 
 
                     try {
-                        if (!getBaseContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + end).exists())
-                            downloadExcel(id, end);
+                        if (!getBaseContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists())
+                            downloadExcel(id, isX);
                         else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
-                            downloadExcel(id, end);
+                            downloadExcel(id, isX);
 
-                        return goThroughExcel(id, end);
+                        return goThroughExcel(id, isX);
                     }catch (IOException e){
                         e.printStackTrace();
                     }
@@ -192,14 +192,14 @@ public class LoadingActivity extends AppCompatActivity {
             return null;
         }
 
-        private void downloadExcel(AnnouncementItemData itemData, String end) throws IOException {
+        private void downloadExcel(AnnouncementItemData itemData, boolean isX) throws IOException {
             String date = itemData.getDate().replace("/","-");
             URL url = new URL(itemData.getUrl());
             URLConnection connection = url.openConnection();
             connection.connect();
 
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
-            OutputStream output = openFileOutput("schedule(" + date + ")" + end, Context.MODE_PRIVATE);
+            OutputStream output = openFileOutput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"), Context.MODE_PRIVATE);
 
             byte data[] = new byte[32];
             int count;
@@ -212,18 +212,18 @@ public class LoadingActivity extends AppCompatActivity {
             input.close();
         }
 
-        private Tuple<String[][], ArrayList<NoteData>> goThroughExcel(AnnouncementItemData itemData, String end) throws IOException {
+        private Tuple<String[][], ArrayList<NoteData>> goThroughExcel(AnnouncementItemData itemData, boolean isX) throws IOException {
             String[][] excelData;
             String date = itemData.getDate().replace("/","-");
+
 
             ///////////////////////////////////////////////////////
             //InputStream excelFile = getAssets().open("TestH.xls");
             //end = "xls";
             ///////////////////////////////////////////////////////
 
-            InputStream excelFile = openFileInput("schedule(" + date + ")" + end);
+            InputStream excelFile = openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
 
-            boolean isX = end.contains("xlsx");
 
             Workbook workbook;
             if(isX)

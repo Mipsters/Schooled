@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -61,10 +62,11 @@ import java.util.List;
 
 public class ScheduleFragment extends Fragment {
 
-    private TextView day;
+    private TextView day, error;
     private Spinner spinner;
     private ListView listView;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private AppBarLayout appBarLayout;
     private Switch aSwitch;
     private String[][] excelData;
     private String[] classes;
@@ -90,10 +92,12 @@ public class ScheduleFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_scheduale, container, false);
 
         day = (TextView) rootView.findViewById(R.id.day);
+        error = (TextView) rootView.findViewById(R.id.error);
         spinner = (Spinner) rootView.findViewById(R.id.spinner);
         listView = (ListView) rootView.findViewById(R.id.listView);
         aSwitch = (Switch) rootView.findViewById(R.id.switch1);
         swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefreshLayout);
+        appBarLayout = (AppBarLayout) rootView.findViewById(R.id.appBar);
 
         return rootView;
     }
@@ -106,16 +110,30 @@ public class ScheduleFragment extends Fragment {
         classes = getArguments().getStringArray(SchooledApplication.CLASSES_DATA);
         sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
 
-        aSwitch.setChecked(sharedPref.getBoolean(SchooledApplication.SWITCH_DATA, false));
 
-        day.setText("יום " + excelData[0][0]);
+        if(excelData == null || areAllNull(classes)) {
+            appBarLayout.setVisibility(View.GONE);
+            swipeRefreshLayout.setVisibility(View.GONE);
+
+            error.setVisibility(View.VISIBLE);
+
+            if(excelData == null)
+                error.setText("אין מערכת");
+            else
+                error.setText("בעיה בפורמט של הxcel");
+            return;
+        }
 
 
         // TODO: 12/03/2017 take care of crashes that occur when there is a problem with the schedule
-
         ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item_rtl, (CharSequence[]) classes);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+
+
+        aSwitch.setChecked(sharedPref.getBoolean(SchooledApplication.SWITCH_DATA, false));
+
+        day.setText("יום " + excelData[0][0]);
 
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -135,6 +153,7 @@ public class ScheduleFragment extends Fragment {
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {}
         });
+
 
         spinner.setSelection(sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 1) - 1);
         deleted = deleteExtra(excelData[sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 1)]);
@@ -181,6 +200,13 @@ public class ScheduleFragment extends Fragment {
         super.onDestroy();
 
         sharedPref.edit().putBoolean(SchooledApplication.SWITCH_DATA,aSwitch.isChecked()).apply();
+    }
+
+    private boolean areAllNull(Object[] arr){
+        for(Object obj : arr)
+            if(obj != null)
+                return false;
+        return true;
     }
 
     private Tuple<String[], Boolean> deleteExtra(String[] schedule){
