@@ -1,4 +1,4 @@
-package net.ddns.mipster.schooled;
+package net.ddns.mipster.schooled.Adapters;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -8,6 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+
+import net.ddns.mipster.schooled.MyClasses.AnnouncementItemData;
+import net.ddns.mipster.schooled.R;
 
 import java.util.ArrayList;
 

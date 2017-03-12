@@ -1,7 +1,4 @@
-package net.ddns.mipster.schooled;
-
-import android.os.Parcel;
-import android.os.Parcelable;
+package net.ddns.mipster.schooled.MyClasses;
 
 import java.io.Serializable;
 

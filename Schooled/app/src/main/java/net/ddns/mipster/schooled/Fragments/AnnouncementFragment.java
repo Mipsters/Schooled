@@ -16,8 +16,8 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import net.ddns.mipster.schooled.AnnouncementItemData;
-import net.ddns.mipster.schooled.AnnouncementListAdapter;
+import net.ddns.mipster.schooled.MyClasses.AnnouncementItemData;
+import net.ddns.mipster.schooled.Adapters.AnnouncementListAdapter;
 import net.ddns.mipster.schooled.Activities.LoadingActivity;
 import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
@@ -51,6 +51,10 @@ public class AnnouncementFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_announcement, container, false);
+
+        swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefreshLayout);
+        listView = (ListView) rootView.findViewById(R.id.listView);
+
         return rootView;
     }
 
@@ -58,8 +62,6 @@ public class AnnouncementFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        swipeRefreshLayout = (SwipeRefreshLayout) getView().findViewById(R.id.swipeRefreshLayout);
-        listView = (ListView) getView().findViewById(R.id.listView);
         data = (ArrayList<AnnouncementItemData>)
                 getArguments().getSerializable(SchooledApplication.ANNOUNCEMENT_DATA);
 

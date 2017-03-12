@@ -2,25 +2,52 @@ package net.ddns.mipster.schooled.Activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import net.ddns.mipster.schooled.AnnouncementItemData;
+import net.ddns.mipster.schooled.MyClasses.AnnouncementItemData;
+import net.ddns.mipster.schooled.MyClasses.NoteData;
+import net.ddns.mipster.schooled.MyClasses.Tuple;
 import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
 
+import org.apache.poi.hssf.usermodel.HSSFAnchor;
+import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
+import org.apache.poi.hssf.usermodel.HSSFPatriarch;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
+import org.apache.poi.hssf.usermodel.HSSFShape;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFSimpleShape;
+import org.apache.poi.hssf.usermodel.HSSFTextbox;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellValue;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Textbox;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.extractor.XSSFExcelExtractor;
+import org.apache.poi.xssf.usermodel.XSSFAnchor;
+import org.apache.poi.xssf.usermodel.XSSFChildAnchor;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import org.apache.poi.xssf.usermodel.XSSFShape;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
+import org.apache.poi.xssf.usermodel.XSSFTextBox;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import org.jsoup.Jsoup;
@@ -37,7 +64,8 @@ import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
 
 
 public class LoadingActivity extends AppCompatActivity {
@@ -67,7 +95,8 @@ public class LoadingActivity extends AppCompatActivity {
 
     class GeneralDataTask extends AsyncTask<Void,Object,Void>{
         private ArrayList<AnnouncementItemData> announcementData;
-        private String[][] excelData;
+        private Tuple<String[][], ArrayList<NoteData>> excelData;
+        private String[] classes;
         private String error;
         private TextView stat;
 
@@ -94,6 +123,13 @@ public class LoadingActivity extends AppCompatActivity {
             publishProgress("Downloading schedule Excel file");
 
             excelData = updateSchedule(announcementData);
+
+            publishProgress("Setting things up");
+
+            classes = new String[excelData.getItem1().length - 1];
+
+            for(int i = 0; i < classes.length; i++)
+                classes[i] = excelData.getItem1()[i + 1][SchooledApplication.FIRST_LINE];
 
             publishProgress("Starting app");
 
@@ -126,17 +162,19 @@ public class LoadingActivity extends AppCompatActivity {
             Intent mainActivity = new Intent(LoadingActivity.this, MainActivity.class);
 
             mainActivity.putExtra(SchooledApplication.ANNOUNCEMENT_DATA, announcementData);
-            mainActivity.putExtra(SchooledApplication.SCHEDULE_DATA, excelData);
+            mainActivity.putExtra(SchooledApplication.SCHEDULE_DATA, excelData.getItem1());
+            mainActivity.putExtra(SchooledApplication.NOTE_DATA, excelData.getItem2());
+            mainActivity.putExtra(SchooledApplication.CLASSES_DATA, classes);
 
             startActivity(mainActivity);
             finish();
         }
 
-        public String[][] updateSchedule(ArrayList<AnnouncementItemData> announcementData){
+        public Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
             for(AnnouncementItemData id : announcementData)
                 if(id.getUrl().contains("s3-eu-west-1.amazonaws.com/schooly/handasaim/news") &&
-                        id.getUrl().contains(".xlsx")){
-
+                        (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
+                    String end = id.getUrl().contains(".xls") ? ".xls" : ".xlsx";
                     String date = id.getDate();
 
                     /*
@@ -153,16 +191,17 @@ public class LoadingActivity extends AppCompatActivity {
 
                     //nowDate.equals(date) || nowDate.equals(finDate) || id.getDate().equals(finDate2)
 
-                    //getBaseContext().getFileStreamPath("schedule(" + date + ").xlsx").exists()
+                    //getBaseContext().getFileStreamPath("schedule(" + date + ").xls").exists()
                     */
 
-                    try {
-                        if (!getBaseContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ").xlsx").exists())
-                            downloadExcel(id);
-                        else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
-                            downloadExcel(id);
 
-                        return goThroughExcel(id);
+                    try {
+                        if (!getBaseContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + end).exists())
+                            downloadExcel(id, end);
+                        else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
+                            downloadExcel(id, end);
+
+                        return goThroughExcel(id, end);
                     }catch (IOException e){
                         e.printStackTrace();
                     }
@@ -171,14 +210,14 @@ public class LoadingActivity extends AppCompatActivity {
             return null;
         }
 
-        private void downloadExcel(AnnouncementItemData itemData) throws IOException {
+        private void downloadExcel(AnnouncementItemData itemData, String end) throws IOException {
             String date = itemData.getDate().replace("/","-");
             URL url = new URL(itemData.getUrl());
             URLConnection connection = url.openConnection();
             connection.connect();
 
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
-            OutputStream output = openFileOutput("schedule(" + date + ").xlsx", Context.MODE_PRIVATE);
+            OutputStream output = openFileOutput("schedule(" + date + ")" + end, Context.MODE_PRIVATE);
 
             byte data[] = new byte[32];
             int count;
@@ -191,12 +230,26 @@ public class LoadingActivity extends AppCompatActivity {
             input.close();
         }
 
-        private String[][] goThroughExcel(AnnouncementItemData itemData) throws IOException {
+        private Tuple<String[][], ArrayList<NoteData>> goThroughExcel(AnnouncementItemData itemData, String end) throws IOException {
             String[][] excelData;
             String date = itemData.getDate().replace("/","-");
 
-            FileInputStream excelFile = openFileInput("schedule(" + date + ").xlsx");
-            Workbook workbook = new XSSFWorkbook(excelFile);
+            /*
+            ///////////////////////////////////////////////////////
+            InputStream excelFile = getAssets().open("TestX.xlsx");
+            end = "xlsx";
+            ///////////////////////////////////////////////////////
+            */
+            FileInputStream excelFile = openFileInput("schedule(" + date + ")" + end);
+
+            boolean isX = end.contains("xlsx");
+
+            Workbook workbook;
+            if(isX)
+                workbook = new XSSFWorkbook(excelFile);
+            else
+                workbook = new HSSFWorkbook(excelFile);
+
 
             Sheet sheet = workbook.getSheetAt(0);
             FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
@@ -208,6 +261,7 @@ public class LoadingActivity extends AppCompatActivity {
                 if(sheet.getRow(r).getPhysicalNumberOfCells() > maxRows)
                     maxRows = sheet.getRow(r).getPhysicalNumberOfCells();
 
+
             excelData = new String[maxRows][rowsCount];
 
             for (int r = 0; r < rowsCount; r++) {
@@ -215,10 +269,37 @@ public class LoadingActivity extends AppCompatActivity {
                 for (int c = 0; c < row.getPhysicalNumberOfCells(); c++)
                     excelData[c][r] = getCellAsString(row, c, formulaEvaluator);
             }
-            return excelData;
+
+
+            ArrayList<NoteData> noteData = new ArrayList<>();
+
+            List children = isX ?
+                    ((XSSFSheet) sheet).getDrawingPatriarch().getShapes() :
+                    ((HSSFSheet) sheet).getDrawingPatriarch().getChildren();
+
+            Iterator it = children.iterator();
+
+            while (it.hasNext()) {
+                if(isX) {
+                    XSSFSimpleShape shape = (XSSFSimpleShape) it.next();
+                    XSSFClientAnchor anchor = (XSSFClientAnchor) shape.getAnchor();
+                    String str = shape.getText();
+                    noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
+                                 anchor.getCol2(), anchor.getRow2(), str));
+                } else {
+                    HSSFSimpleShape shape = (HSSFSimpleShape) it.next();
+                    HSSFClientAnchor anchor = (HSSFClientAnchor) shape.getAnchor();
+                    HSSFRichTextString richString = shape.getString();
+                    String str = richString.getString();
+                    noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
+                            anchor.getCol2(), anchor.getRow2(), str));
+                }
+            }
+
+            return new Tuple<>(excelData, noteData);
         }
 
-        protected String getCellAsString(Row row, int c, FormulaEvaluator formulaEvaluator) {
+        private String getCellAsString(Row row, int c, FormulaEvaluator formulaEvaluator) {
             String value = "";
             Cell cell = row.getCell(c);
             CellValue cellValue = formulaEvaluator.evaluate(cell);

@@ -8,12 +8,12 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
 
-import net.ddns.mipster.schooled.AnnouncementItemData;
+import net.ddns.mipster.schooled.MyClasses.AnnouncementItemData;
 import net.ddns.mipster.schooled.Fragments.AnnouncementFragment;
 import net.ddns.mipster.schooled.Fragments.ScheduleFragment;
-import net.ddns.mipster.schooled.Fragments.TimetableFragment;
+import net.ddns.mipster.schooled.Fragments.NoteFragment;
+import net.ddns.mipster.schooled.MyClasses.NoteData;
 import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
 
@@ -36,13 +36,14 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
 
-    //private SwipeRefreshLayout swipeRefreshLayout;
+    private String[] names;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        names = getResources().getStringArray(R.array.fragment_names);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -75,21 +76,24 @@ public class MainActivity extends AppCompatActivity {
                             getIntent().getSerializableExtra(SchooledApplication.ANNOUNCEMENT_DATA));
                 case 1:
                     return ScheduleFragment.newInstance((String[][])
-                            getIntent().getSerializableExtra(SchooledApplication.SCHEDULE_DATA));
+                            getIntent().getSerializableExtra(SchooledApplication.SCHEDULE_DATA),
+                            getIntent().getStringArrayExtra(SchooledApplication.CLASSES_DATA));
                 case 2:
-                    return TimetableFragment.newInstance();
+                    return NoteFragment.newInstance((ArrayList<NoteData>)
+                            getIntent().getSerializableExtra(SchooledApplication.NOTE_DATA),
+                            getIntent().getStringArrayExtra(SchooledApplication.CLASSES_DATA));
             }
             return null;
         }
 
         @Override
         public int getCount() {
-            return 3;
+            return names.length;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return getResources().getStringArray(R.array.fragment_names)[position];
+            return names[position];
         }
     }
 }

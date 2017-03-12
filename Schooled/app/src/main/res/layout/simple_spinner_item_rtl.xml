@@ -9,4 +9,5 @@
     android:layout_height="wrap_content"
     android:ellipsize="marquee"
     android:gravity="end"
-    android:text="Text 1"/>
+    android:text="Text 1"
+    android:textColor="#fff"/>

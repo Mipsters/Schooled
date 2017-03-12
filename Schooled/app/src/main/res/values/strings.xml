@@ -3,7 +3,45 @@
     <string-array name="fragment_names">
         <item>חדשות</item>
         <item>מערכת</item>
-        <item>לוח צלצולים</item>
+        <item>פתקים צהובים</item>
     </string-array>
-    <string name="title_activity_temp">Temp</string>
+    <string-array name="hours_time">
+        <item>07:45\n08:30</item>
+        <item>08:30\n09:15</item>
+        <item>09:15\n10:00</item>
+        <item>10:15\n10:00</item>
+        <item>10:15\n11:00</item>
+        <item>11:00\n11:45</item>
+        <item>12:10\n11:45</item>
+        <item>12:10\n12:55</item>
+        <item>12:55\n13:40</item>
+        <item>13:50\n13:40</item>
+        <item>13:50\n14:35</item>
+        <item>14:35\n15:20</item>
+        <item>15:20\n15:25</item>
+        <item>15:25\n16:10</item>
+        <item>16:10\n16:55</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+        <item>🖕</item>
+    </string-array>
 </resources>

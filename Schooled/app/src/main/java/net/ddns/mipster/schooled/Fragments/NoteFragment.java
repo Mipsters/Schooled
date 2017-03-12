@@ -1,27 +1,35 @@
 package net.ddns.mipster.schooled.Fragments;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import net.ddns.mipster.schooled.MyClasses.NoteData;
 import net.ddns.mipster.schooled.R;
+import net.ddns.mipster.schooled.SchooledApplication;
+
+import java.util.ArrayList;
 
 /**
  * Created by Chen on 24/02/2017.
  */
 
-public class TimetableFragment extends Fragment {
+public class NoteFragment extends Fragment {
 
-    public TimetableFragment(){}
+    public NoteFragment(){}
 
-    public static TimetableFragment newInstance() {
+    public static NoteFragment newInstance(ArrayList<NoteData> noteData, String[] classes) {
         
         Bundle args = new Bundle();
+
+        args.putSerializable(SchooledApplication.NOTE_DATA, noteData);
+        args.putStringArray(SchooledApplication.CLASSES_DATA, classes);
         
-        TimetableFragment fragment = new TimetableFragment();
+        NoteFragment fragment = new NoteFragment();
         fragment.setArguments(args);
         return fragment;
     }
@@ -35,5 +43,12 @@ public class TimetableFragment extends Fragment {
         textView.setText("Timetable Fragment");
 
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+
     }
 }
