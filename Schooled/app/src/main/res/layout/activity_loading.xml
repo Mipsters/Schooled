@@ -10,7 +10,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="net.ddns.mipster.schooled.Activities.LoadingActivity"
+    tools:context="net.ddns.mipster.schooled.activities.LoadingActivity"
     android:background="@color/colorPrimaryDark">
 
     <com.wang.avi.AVLoadingIndicatorView

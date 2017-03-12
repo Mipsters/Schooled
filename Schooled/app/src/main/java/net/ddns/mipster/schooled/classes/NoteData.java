@@ -1,6 +1,4 @@
-package net.ddns.mipster.schooled.MyClasses;
-
-import android.graphics.Point;
+package net.ddns.mipster.schooled.classes;
 
 import java.io.Serializable;
 

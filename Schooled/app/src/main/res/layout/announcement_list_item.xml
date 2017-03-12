@@ -1,35 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp">
+    android:background="@drawable/drawer_outer"
+    android:padding="8dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="15sp"
-        android:text="xx/xx/xxxx"
-        android:textColor="#000"
-        android:id="@+id/date" />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/drawer"
+        android:padding="10dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:textDirection="rtl"
-        android:textSize="18sp"
-        android:text="Title"
-        android:textColor="#000"
-        android:id="@+id/title" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:text="xx/xx/xxxx"
+            android:textColor="#000"
+            android:id="@+id/date" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:textDirection="rtl"
-        android:text="Text"
-        android:textColor="#000"
-        android:id="@+id/text"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:textDirection="rtl"
+            android:textSize="18sp"
+            android:text="Title"
+            android:textColor="#000"
+            android:id="@+id/title" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:textDirection="rtl"
+            android:text="Text"
+            android:textColor="#000"
+            android:id="@+id/text"/>
+
+    </LinearLayout>
 </LinearLayout>

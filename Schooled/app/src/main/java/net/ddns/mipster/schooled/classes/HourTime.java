@@ -1,4 +1,4 @@
-package net.ddns.mipster.schooled.MyClasses;
+package net.ddns.mipster.schooled.classes;
 
 
 import java.util.Calendar;

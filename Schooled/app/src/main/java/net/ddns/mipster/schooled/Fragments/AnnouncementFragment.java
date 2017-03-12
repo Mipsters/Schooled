@@ -1,4 +1,4 @@
-package net.ddns.mipster.schooled.Fragments;
+package net.ddns.mipster.schooled.fragments;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -16,9 +16,9 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import net.ddns.mipster.schooled.MyClasses.AnnouncementItemData;
-import net.ddns.mipster.schooled.Adapters.AnnouncementListAdapter;
-import net.ddns.mipster.schooled.Activities.LoadingActivity;
+import net.ddns.mipster.schooled.classes.AnnouncementItemData;
+import net.ddns.mipster.schooled.adapters.AnnouncementListAdapter;
+import net.ddns.mipster.schooled.activities.LoadingActivity;
 import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
 

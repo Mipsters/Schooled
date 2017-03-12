@@ -1,4 +1,4 @@
-package net.ddns.mipster.schooled.MyClasses;
+package net.ddns.mipster.schooled.classes;
 
 /**
  * Created by Chen on 04/03/2017.

@@ -1,4 +1,4 @@
-package net.ddns.mipster.schooled.Adapters;
+package net.ddns.mipster.schooled.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import net.ddns.mipster.schooled.MyClasses.HourTime;
+import net.ddns.mipster.schooled.classes.HourTime;
 import net.ddns.mipster.schooled.R;
 
 import java.util.ArrayList;

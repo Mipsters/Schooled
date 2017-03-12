@@ -3,7 +3,7 @@
     <string-array name="fragment_names">
         <item>חדשות</item>
         <item>מערכת</item>
-        <item>פתקים צהובים</item>
+        <item>פתקים</item>
     </string-array>
     <string-array name="hours_time">
         <item>07:45\n08:30</item>

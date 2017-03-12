@@ -1,4 +1,4 @@
-package net.ddns.mipster.schooled.Adapters;
+package net.ddns.mipster.schooled.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import net.ddns.mipster.schooled.MyClasses.AnnouncementItemData;
+import net.ddns.mipster.schooled.classes.AnnouncementItemData;
 import net.ddns.mipster.schooled.R;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class AnnouncementListAdapter extends BaseAdapter {
         text.setText(data.get(position).getText());
 
         if(!data.get(position).getUrl().isEmpty()) {
-            title.setTextColor(Color.parseColor("#3366BB"));
+            title.setTextColor(Color.parseColor("#0000EE"));
             title.setPaintFlags(title.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
         }
 

@@ -1,4 +1,4 @@
-package net.ddns.mipster.schooled.Fragments;
+package net.ddns.mipster.schooled.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import net.ddns.mipster.schooled.MyClasses.NoteData;
+import net.ddns.mipster.schooled.classes.NoteData;
 import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
 

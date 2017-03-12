@@ -1,53 +1,36 @@
-package net.ddns.mipster.schooled.Activities;
+package net.ddns.mipster.schooled.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Point;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import net.ddns.mipster.schooled.MyClasses.AnnouncementItemData;
-import net.ddns.mipster.schooled.MyClasses.NoteData;
-import net.ddns.mipster.schooled.MyClasses.Tuple;
+import net.ddns.mipster.schooled.classes.AnnouncementItemData;
+import net.ddns.mipster.schooled.classes.NoteData;
+import net.ddns.mipster.schooled.classes.Tuple;
 import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
 
-import org.apache.poi.hssf.usermodel.HSSFAnchor;
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
-import org.apache.poi.hssf.usermodel.HSSFPatriarch;
 import org.apache.poi.hssf.usermodel.HSSFRichTextString;
-import org.apache.poi.hssf.usermodel.HSSFShape;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFSimpleShape;
-import org.apache.poi.hssf.usermodel.HSSFTextbox;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellValue;
-import org.apache.poi.ss.usermodel.ClientAnchor;
-import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
-import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Textbox;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.extractor.XSSFExcelExtractor;
-import org.apache.poi.xssf.usermodel.XSSFAnchor;
-import org.apache.poi.xssf.usermodel.XSSFChildAnchor;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
-import org.apache.poi.xssf.usermodel.XSSFDrawing;
-import org.apache.poi.xssf.usermodel.XSSFRichTextString;
-import org.apache.poi.xssf.usermodel.XSSFShape;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
-import org.apache.poi.xssf.usermodel.XSSFTextBox;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import org.jsoup.Jsoup;
@@ -55,7 +38,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -234,13 +216,12 @@ public class LoadingActivity extends AppCompatActivity {
             String[][] excelData;
             String date = itemData.getDate().replace("/","-");
 
-            /*
             ///////////////////////////////////////////////////////
-            InputStream excelFile = getAssets().open("TestX.xlsx");
-            end = "xlsx";
+            //InputStream excelFile = getAssets().open("TestH.xls");
+            //end = "xls";
             ///////////////////////////////////////////////////////
-            */
-            FileInputStream excelFile = openFileInput("schedule(" + date + ")" + end);
+
+            InputStream excelFile = openFileInput("schedule(" + date + ")" + end);
 
             boolean isX = end.contains("xlsx");
 
