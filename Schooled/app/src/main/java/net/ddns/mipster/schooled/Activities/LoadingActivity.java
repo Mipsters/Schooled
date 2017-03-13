@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -108,6 +109,9 @@ public class LoadingActivity extends AppCompatActivity {
 
             publishProgress("Setting things up");
 
+            if(excelData.getItem1()[0][1].isEmpty())
+                SchooledApplication.FIRST_LINE = 1;
+
             classes = new String[excelData.getItem1().length - 1];
 
             for(int i = 0; i < classes.length; i++)
@@ -152,7 +156,7 @@ public class LoadingActivity extends AppCompatActivity {
             finish();
         }
 
-        public Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
+        private Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
             for(AnnouncementItemData id : announcementData)
                 if(id.getUrl().contains("s3-eu-west-1.amazonaws.com/schooly/handasaim/news") &&
                         (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
@@ -178,10 +182,14 @@ public class LoadingActivity extends AppCompatActivity {
 
 
                     try {
-                        if (!getBaseContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists())
+                        if (!getBaseContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists()) {
+                            Log.i("updateSchedule","file did not exist");
                             downloadExcel(id, isX);
-                        else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
+                        } else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17) {
+                            Log.i("updateSchedule", "the time is after five pm");
                             downloadExcel(id, isX);
+                        } else
+                            Log.i("updateSchedule","used existing file");
 
                         return goThroughExcel(id, isX);
                     }catch (IOException e){

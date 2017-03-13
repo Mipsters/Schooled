@@ -10,6 +10,7 @@ import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +46,9 @@ import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -125,7 +129,6 @@ public class ScheduleFragment extends Fragment {
         }
 
 
-        // TODO: 12/03/2017 take care of crashes that occur when there is a problem with the schedule
         ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(getContext(), R.layout.simple_spinner_item_rtl, (CharSequence[]) classes);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
@@ -168,6 +171,9 @@ public class ScheduleFragment extends Fragment {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                String date = "08/03/17";
+                boolean isX = false;
+                Log.d("SwipeLayout", "does the file exist: " + getContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists());
                 swipeRefreshLayout.setRefreshing(false);
             }
         });
@@ -213,7 +219,7 @@ public class ScheduleFragment extends Fragment {
         boolean isPre = false;
         int len;
 
-        if(!schedule[1].isEmpty())
+        if(!schedule[1 + SchooledApplication.FIRST_LINE].isEmpty())
             isPre = true;
 
         for (len = 0; len < schedule.length; len++) {
@@ -267,11 +273,11 @@ public class ScheduleFragment extends Fragment {
             listView.setAdapter(scheduleListAdapter);
         }
 
-        public Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
+        private Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
             for(AnnouncementItemData id : announcementData)
                 if(id.getUrl().contains("s3-eu-west-1.amazonaws.com/schooly/handasaim/news") &&
                         (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
-                    String end = id.getUrl().contains(".xls") ? ".xls" : ".xlsx";
+                    boolean isX = id.getUrl().contains(".xlsx");
                     String date = id.getDate();
 
                     /*
@@ -293,12 +299,12 @@ public class ScheduleFragment extends Fragment {
 
 
                     try {
-                        if (!getContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + end).exists())
-                            downloadExcel(id, end);
+                        if (!getContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists())
+                            downloadExcel(id, isX);
                         else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
-                            downloadExcel(id, end);
+                            downloadExcel(id, isX);
 
-                        return goThroughExcel(id, end);
+                        return goThroughExcel(id, isX);
                     }catch (IOException e){
                         e.printStackTrace();
                     }
@@ -307,14 +313,14 @@ public class ScheduleFragment extends Fragment {
             return null;
         }
 
-        private void downloadExcel(AnnouncementItemData itemData, String end) throws IOException {
+        private void downloadExcel(AnnouncementItemData itemData, boolean isX) throws IOException {
             String date = itemData.getDate().replace("/","-");
             URL url = new URL(itemData.getUrl());
             URLConnection connection = url.openConnection();
             connection.connect();
 
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
-            OutputStream output = getContext().openFileOutput("schedule(" + date + ")" + end, Context.MODE_PRIVATE);
+            OutputStream output = getContext().openFileOutput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"), Context.MODE_PRIVATE);
 
             byte data[] = new byte[32];
             int count;
@@ -327,19 +333,18 @@ public class ScheduleFragment extends Fragment {
             input.close();
         }
 
-        private Tuple<String[][], ArrayList<NoteData>> goThroughExcel(AnnouncementItemData itemData, String end) throws IOException {
+        private Tuple<String[][], ArrayList<NoteData>> goThroughExcel(AnnouncementItemData itemData, boolean isX) throws IOException {
             String[][] excelData;
             String date = itemData.getDate().replace("/","-");
 
 
             ///////////////////////////////////////////////////////
-            InputStream excelFile = getContext().getAssets().open("TestX.xlsx");
-            end = "xlsx";
+            //InputStream excelFile = getAssets().open("TestH.xls");
+            //end = "xls";
             ///////////////////////////////////////////////////////
 
-            //FileInputStream excelFile = openFileInput("schedule(" + date + ")" + end);
+            InputStream excelFile = getContext().openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
 
-            boolean isX = end.contains("xlsx");
 
             Workbook workbook;
             if(isX)
@@ -424,5 +429,46 @@ public class ScheduleFragment extends Fragment {
                 }
             return value;
         }
+    }
+
+
+    @Nullable
+    public static ArrayList<AnnouncementItemData> parseAnnouncementData(){
+        ArrayList<AnnouncementItemData> announcementData = new ArrayList<>();
+        Document doc;
+        try {
+            doc = Jsoup.connect("http://www.handasaim.co.il/").get();
+        } catch (java.io.IOException e) {
+            return null;
+        }
+
+        Elements newsHeadlines = doc.select("marquee > table > tbody > tr > td");
+        String[] data = newsHeadlines.html().split(String.format("(?=%1$s)", "<sup>"));
+        String[] newData = new String[data.length - 1];
+
+        System.arraycopy(data,1,newData,0,data.length - 1);
+
+        for(String str : newData){
+            Document document = Jsoup.parse(str);
+
+            String dataStr = document.select("sup").html();
+            String date = dataStr.substring(1,dataStr.length() - 1);
+
+            dataStr = document.select("b").html();
+            String title = dataStr;
+
+            String url = document.select("a").attr("href").replace(" ","");
+
+            document = Jsoup.parse(document.toString()
+                    .replace(document.select("sup").toString(),"")
+                    .replace(document.select("b").toString(),"")
+                    .replace(document.select("a").toString(),""));
+
+            String text = document.select("body").html()
+                    .replace("<br>","\n").replaceAll("(?m)^[ \t]*\r?\n", "");
+
+            announcementData.add(new AnnouncementItemData(title,date,text,url));
+        }
+        return announcementData;
     }
 }
