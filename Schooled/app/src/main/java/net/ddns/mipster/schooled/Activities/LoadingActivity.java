@@ -109,13 +109,17 @@ public class LoadingActivity extends AppCompatActivity {
 
             publishProgress("Setting things up");
 
-            if(excelData.getItem1()[0][1].isEmpty())
-                SchooledApplication.FIRST_LINE = 1;
+            if(excelData != null) {
+                if (excelData.getItem1()[0][1].isEmpty())
+                    SchooledApplication.FIRST_LINE = 1;
+                else
+                    SchooledApplication.FIRST_LINE = 0;
 
-            classes = new String[excelData.getItem1().length - 1];
+                classes = new String[excelData.getItem1().length - 1];
 
-            for(int i = 0; i < classes.length; i++)
-                classes[i] = excelData.getItem1()[i + 1][SchooledApplication.FIRST_LINE];
+                for (int i = 0; i < classes.length; i++)
+                    classes[i] = excelData.getItem1()[i + 1][SchooledApplication.FIRST_LINE].split(" ")[0];
+            }
 
             publishProgress("Starting app");
 
@@ -182,7 +186,7 @@ public class LoadingActivity extends AppCompatActivity {
 
 
                     try {
-                        if (!getBaseContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists()) {
+                        if (!getApplicationContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists()) {
                             Log.i("updateSchedule","file did not exist");
                             downloadExcel(id, isX);
                         } else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17) {
@@ -207,7 +211,7 @@ public class LoadingActivity extends AppCompatActivity {
             connection.connect();
 
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
-            OutputStream output = openFileOutput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"), Context.MODE_PRIVATE);
+            OutputStream output = getApplicationContext().openFileOutput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"), Context.MODE_PRIVATE);
 
             byte data[] = new byte[32];
             int count;
@@ -215,7 +219,6 @@ public class LoadingActivity extends AppCompatActivity {
             while ((count = input.read(data)) != -1)
                 output.write(data, 0, count);
 
-            output.flush();
             output.close();
             input.close();
         }
@@ -230,7 +233,7 @@ public class LoadingActivity extends AppCompatActivity {
             //end = "xls";
             ///////////////////////////////////////////////////////
 
-            InputStream excelFile = openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
+            InputStream excelFile = getApplicationContext().openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
 
 
             Workbook workbook;
@@ -262,26 +265,32 @@ public class LoadingActivity extends AppCompatActivity {
 
             ArrayList<NoteData> noteData = new ArrayList<>();
 
-            List children = isX ?
-                    ((XSSFSheet) sheet).getDrawingPatriarch().getShapes() :
-                    ((HSSFSheet) sheet).getDrawingPatriarch().getChildren();
+            if((isX ?
+                    ((XSSFSheet) sheet).getDrawingPatriarch() :
+                    ((HSSFSheet) sheet).getDrawingPatriarch())
+                    != null) {
 
-            Iterator it = children.iterator();
+                List children = isX ?
+                        ((XSSFSheet) sheet).getDrawingPatriarch().getShapes() :
+                        ((HSSFSheet) sheet).getDrawingPatriarch().getChildren();
 
-            while (it.hasNext()) {
-                if(isX) {
-                    XSSFSimpleShape shape = (XSSFSimpleShape) it.next();
-                    XSSFClientAnchor anchor = (XSSFClientAnchor) shape.getAnchor();
-                    String str = shape.getText();
-                    noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
-                                 anchor.getCol2(), anchor.getRow2(), str));
-                } else {
-                    HSSFSimpleShape shape = (HSSFSimpleShape) it.next();
-                    HSSFClientAnchor anchor = (HSSFClientAnchor) shape.getAnchor();
-                    HSSFRichTextString richString = shape.getString();
-                    String str = richString.getString();
-                    noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
-                            anchor.getCol2(), anchor.getRow2(), str));
+                Iterator it = children.iterator();
+
+                while (it.hasNext()) {
+                    if (isX) {
+                        XSSFSimpleShape shape = (XSSFSimpleShape) it.next();
+                        XSSFClientAnchor anchor = (XSSFClientAnchor) shape.getAnchor();
+                        String str = shape.getText();
+                        noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
+                                anchor.getCol2(), anchor.getRow2(), str));
+                    } else {
+                        HSSFSimpleShape shape = (HSSFSimpleShape) it.next();
+                        HSSFClientAnchor anchor = (HSSFClientAnchor) shape.getAnchor();
+                        HSSFRichTextString richString = shape.getString();
+                        String str = richString.getString();
+                        noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
+                                anchor.getCol2(), anchor.getRow2(), str));
+                    }
                 }
             }
 

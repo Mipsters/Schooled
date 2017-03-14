@@ -2,6 +2,7 @@ package net.ddns.mipster.schooled.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,9 +67,9 @@ public class ScheduleListAdapter extends BaseAdapter {
             String[] arr = numText.split("\n");
             if (arr.length > 1 && HourTime.isNowInRange(HourTime.parse(arr[0]), HourTime.parse(arr[1])))
                 if(data.get(position).equals("הפסקה"))
-                    convertView.setBackgroundColor(Color.parseColor("#00ff00"));
+                    convertView.setBackgroundColor(Color.parseColor("#00cc00"));
                 else
-                    convertView.setBackgroundColor(Color.parseColor("#0000cc"));
+                    convertView.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
         }catch (HourTime.ParseException e){
             e.printStackTrace();
         }

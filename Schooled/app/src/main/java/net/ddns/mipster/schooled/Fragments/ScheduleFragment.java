@@ -171,10 +171,7 @@ public class ScheduleFragment extends Fragment {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                String date = "08/03/17";
-                boolean isX = false;
-                Log.d("SwipeLayout", "does the file exist: " + getContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists());
-                swipeRefreshLayout.setRefreshing(false);
+                new GeneralDataTask().execute();
             }
         });
 
@@ -236,8 +233,6 @@ public class ScheduleFragment extends Fragment {
     class GeneralDataTask extends AsyncTask<Void,Object,Void> {
         private ArrayList<AnnouncementItemData> announcementData;
         private Tuple<String[][], ArrayList<NoteData>> excelData;
-        private String error;
-
 
         @Override
         protected Void doInBackground(Void... voids) {
@@ -245,32 +240,34 @@ public class ScheduleFragment extends Fragment {
 
             if(announcementData == null) {
                 cancel(true);
-                error = "Internet connection error";
                 return null;
             }
 
             excelData = updateSchedule(announcementData);
+
+            if(excelData.getItem1()[0][1].isEmpty())
+                SchooledApplication.FIRST_LINE = 1;
+            else
+                SchooledApplication.FIRST_LINE = 0;
 
             return null;
         }
 
         @Override
         protected void onCancelled() {
-            Snackbar.make(getView(), error, Snackbar.LENGTH_INDEFINITE)
-                    .setAction("retry", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            new GeneralDataTask().execute();
-                        }
-                    }).show();
+            Snackbar.make(getView(),
+                    "Internet connection error",Snackbar.LENGTH_SHORT).show();
+            swipeRefreshLayout.setRefreshing(false);
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            deleteExtra(excelData.getItem1()[sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 1)]);
+            deleted = deleteExtra(excelData.getItem1()[sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 1)]);
 
             ScheduleListAdapter scheduleListAdapter = new ScheduleListAdapter(getContext(), deleted.getItem1(), deleted.getItem2(), aSwitch.isChecked());
             listView.setAdapter(scheduleListAdapter);
+
+            swipeRefreshLayout.setRefreshing(false);
         }
 
         private Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
@@ -299,7 +296,7 @@ public class ScheduleFragment extends Fragment {
 
 
                     try {
-                        if (!getContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists())
+                        if (!getContext().getApplicationContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists())
                             downloadExcel(id, isX);
                         else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
                             downloadExcel(id, isX);
@@ -320,7 +317,7 @@ public class ScheduleFragment extends Fragment {
             connection.connect();
 
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
-            OutputStream output = getContext().openFileOutput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"), Context.MODE_PRIVATE);
+            OutputStream output = getContext().getApplicationContext().openFileOutput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"), Context.MODE_PRIVATE);
 
             byte data[] = new byte[32];
             int count;
@@ -328,7 +325,6 @@ public class ScheduleFragment extends Fragment {
             while ((count = input.read(data)) != -1)
                 output.write(data, 0, count);
 
-            output.flush();
             output.close();
             input.close();
         }
@@ -337,16 +333,15 @@ public class ScheduleFragment extends Fragment {
             String[][] excelData;
             String date = itemData.getDate().replace("/","-");
 
+            InputStream excelFile = getContext().getApplicationContext().openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
 
-            ///////////////////////////////////////////////////////
-            //InputStream excelFile = getAssets().open("TestH.xls");
-            //end = "xls";
-            ///////////////////////////////////////////////////////
-
-            InputStream excelFile = getContext().openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
-
+            /*
+            InputStream excelFile = getContext().getAssets().open("TestH.xls");
+            isX = false;
+            */
 
             Workbook workbook;
+
             if(isX)
                 workbook = new XSSFWorkbook(excelFile);
             else
@@ -375,26 +370,32 @@ public class ScheduleFragment extends Fragment {
 
             ArrayList<NoteData> noteData = new ArrayList<>();
 
-            List children = isX ?
-                    ((XSSFSheet) sheet).getDrawingPatriarch().getShapes() :
-                    ((HSSFSheet) sheet).getDrawingPatriarch().getChildren();
+            if((isX ?
+                    ((XSSFSheet) sheet).getDrawingPatriarch() :
+                    ((HSSFSheet) sheet).getDrawingPatriarch())
+                    != null) {
 
-            Iterator it = children.iterator();
+                List children = isX ?
+                        ((XSSFSheet) sheet).getDrawingPatriarch().getShapes() :
+                        ((HSSFSheet) sheet).getDrawingPatriarch().getChildren();
 
-            while (it.hasNext()) {
-                if(isX) {
-                    XSSFSimpleShape shape = (XSSFSimpleShape) it.next();
-                    XSSFClientAnchor anchor = (XSSFClientAnchor) shape.getAnchor();
-                    String str = shape.getText();
-                    noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
-                            anchor.getCol2(), anchor.getRow2(), str));
-                } else {
-                    HSSFSimpleShape shape = (HSSFSimpleShape) it.next();
-                    HSSFClientAnchor anchor = (HSSFClientAnchor) shape.getAnchor();
-                    HSSFRichTextString richString = shape.getString();
-                    String str = richString.getString();
-                    noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
-                            anchor.getCol2(), anchor.getRow2(), str));
+                Iterator it = children.iterator();
+
+                while (it.hasNext()) {
+                    if (isX) {
+                        XSSFSimpleShape shape = (XSSFSimpleShape) it.next();
+                        XSSFClientAnchor anchor = (XSSFClientAnchor) shape.getAnchor();
+                        String str = shape.getText();
+                        noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
+                                anchor.getCol2(), anchor.getRow2(), str));
+                    } else {
+                        HSSFSimpleShape shape = (HSSFSimpleShape) it.next();
+                        HSSFClientAnchor anchor = (HSSFClientAnchor) shape.getAnchor();
+                        HSSFRichTextString richString = shape.getString();
+                        String str = richString.getString();
+                        noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
+                                anchor.getCol2(), anchor.getRow2(), str));
+                    }
                 }
             }
 

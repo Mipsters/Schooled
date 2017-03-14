@@ -1,12 +1,13 @@
 package net.ddns.mipster.schooled.fragments;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import net.ddns.mipster.schooled.classes.NoteData;
 import net.ddns.mipster.schooled.R;
@@ -37,10 +38,9 @@ public class NoteFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_timetable, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_note, container, false);
 
-        TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-        textView.setText("Timetable Fragment");
+
 
         return rootView;
     }

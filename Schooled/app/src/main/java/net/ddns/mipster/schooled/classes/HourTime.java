@@ -55,7 +55,7 @@ public class HourTime
     }
 
     public int getMinute(){
-        return second;
+        return minute;
     }
 
     public void setMinute(int minute){
@@ -66,7 +66,7 @@ public class HourTime
     }
 
     public int getHour(){
-        return second;
+        return hour;
     }
 
     public void setHour(int hour){
