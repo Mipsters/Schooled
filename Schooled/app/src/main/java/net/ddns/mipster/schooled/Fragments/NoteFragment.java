@@ -1,14 +1,14 @@
 package net.ddns.mipster.schooled.fragments;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
+import net.ddns.mipster.schooled.adapters.NoteListAdapter;
 import net.ddns.mipster.schooled.classes.NoteData;
 import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
@@ -20,6 +20,10 @@ import java.util.ArrayList;
  */
 
 public class NoteFragment extends Fragment {
+
+    ListView listView;
+    ArrayList<NoteData> noteData;
+    String[] classes;
 
     public NoteFragment(){}
 
@@ -40,7 +44,7 @@ public class NoteFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_note, container, false);
 
-
+        listView = (ListView) rootView.findViewById(R.id.listView);
 
         return rootView;
     }
@@ -49,6 +53,11 @@ public class NoteFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        noteData = (ArrayList<NoteData>) getArguments().getSerializable(SchooledApplication.NOTE_DATA);
+        classes = getArguments().getStringArray(SchooledApplication.CLASSES_DATA);
 
+        NoteListAdapter adapter = new NoteListAdapter(getContext(), noteData);
+
+        listView.setAdapter(adapter);
     }
 }
