@@ -2,6 +2,12 @@ package net.ddns.mipster.schooled.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.Shape;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,16 +69,17 @@ public class ScheduleListAdapter extends BaseAdapter {
 
         text.setText(data.get(position).isEmpty() ? "אין שיעור" : data.get(position));
 
-        try {
-            String[] arr = numText.split("\n");
-            if (arr.length > 1 && HourTime.isNowInRange(HourTime.parse(arr[0]), HourTime.parse(arr[1])))
-                if(data.get(position).equals("הפסקה"))
-                    convertView.setBackgroundColor(Color.parseColor("#00cc00"));
-                else
-                    convertView.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
-        }catch (HourTime.ParseException e){
-            e.printStackTrace();
-        }
+        if(useHours)
+            try {
+                String[] arr = numText.split("\n");
+                if (arr.length > 1 && HourTime.isNowInRange(HourTime.parse(arr[0]), HourTime.parse(arr[1])))
+                    if (data.get(position).equals("הפסקה"))
+                        convertView.setBackgroundColor(Color.parseColor("#33CCFF"));
+                    else
+                        convertView.setBackgroundColor(Color.parseColor("#FFFC7F"));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
 
         if(useHours)
             num.setTextSize(15);
