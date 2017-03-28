@@ -1,5 +1,7 @@
 package net.ddns.mipster.schooled.activities;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -11,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import net.ddns.mipster.schooled.AnnouncementWidget;
 import net.ddns.mipster.schooled.classes.AnnouncementItemData;
 import net.ddns.mipster.schooled.classes.NoteData;
 import net.ddns.mipster.schooled.classes.Tuple;
@@ -53,7 +56,7 @@ import java.util.List;
 
 public class LoadingActivity extends AppCompatActivity {
 
-    private final String WORK = "began work";
+    private final static String WORK = "net.ddns.mipster.schooled.activities.BEGAN_WORK";
 
     com.wang.avi.AVLoadingIndicatorView progressBar;
     com.wang.avi.AVLoadingIndicatorView progressBarOff;
@@ -66,8 +69,6 @@ public class LoadingActivity extends AppCompatActivity {
         progressBar = (com.wang.avi.AVLoadingIndicatorView) findViewById(R.id.loadOn);
         progressBarOff = (com.wang.avi.AVLoadingIndicatorView) findViewById(R.id.loadOff);
 
-        progressBar.show();
-        progressBarOff.show();
         progressBarOff.setVisibility(View.GONE);
 
         if(!getIntent().getBooleanExtra(WORK, false)) {
@@ -149,6 +150,14 @@ public class LoadingActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            /*
+            Intent intent = new Intent(getApplicationContext(),AnnouncementWidget.class);
+            intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+
+            int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), AnnouncementWidget.class));
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
+            sendBroadcast(intent);
+            */
             Intent mainActivity = new Intent(LoadingActivity.this, MainActivity.class);
 
             mainActivity.putExtra(SchooledApplication.ANNOUNCEMENT_DATA, announcementData);
@@ -163,7 +172,7 @@ public class LoadingActivity extends AppCompatActivity {
         private Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
             for(AnnouncementItemData id : announcementData)
                 if(id.getUrl().contains("s3-eu-west-1.amazonaws.com/schooly/handasaim/news") &&
-                        (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
+                        id.getTitle().contains("מערכת שעות") && (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
                     boolean isX = id.getUrl().contains(".xlsx");
                     String date = id.getDate();
 
@@ -210,6 +219,7 @@ public class LoadingActivity extends AppCompatActivity {
             URLConnection connection = url.openConnection();
             connection.connect();
 
+
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
             OutputStream output = getApplicationContext().openFileOutput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"), Context.MODE_PRIVATE);
 
@@ -227,6 +237,7 @@ public class LoadingActivity extends AppCompatActivity {
             String[][] excelData;
             String date = itemData.getDate().replace("/","-");
 
+            SchooledApplication.data.resetNote();
 
             ///////////////////////////////////////////////////////
             //InputStream excelFile = getAssets().open("TestH.xls");
@@ -283,6 +294,8 @@ public class LoadingActivity extends AppCompatActivity {
                         String str = shape.getText();
                         noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
                                 anchor.getCol2(), anchor.getRow2(), str));
+                        SchooledApplication.data.insertDataNote(anchor.getCol1(), anchor.getRow1(),
+                                anchor.getCol2(), anchor.getRow2(), str);
                     } else {
                         HSSFSimpleShape shape = (HSSFSimpleShape) it.next();
                         HSSFClientAnchor anchor = (HSSFClientAnchor) shape.getAnchor();
@@ -290,6 +303,8 @@ public class LoadingActivity extends AppCompatActivity {
                         String str = richString.getString();
                         noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
                                 anchor.getCol2(), anchor.getRow2(), str));
+                        SchooledApplication.data.insertDataNote(anchor.getCol1(), anchor.getRow1(),
+                                anchor.getCol2(), anchor.getRow2(), str);
                     }
                 }
             }
@@ -332,6 +347,9 @@ public class LoadingActivity extends AppCompatActivity {
     public static ArrayList<AnnouncementItemData> parseAnnouncementData(){
         ArrayList<AnnouncementItemData> announcementData = new ArrayList<>();
         Document doc;
+
+        SchooledApplication.data.resetAnnouncement();
+
         try {
             doc = Jsoup.connect("http://www.handasaim.co.il/").get();
         } catch (java.io.IOException e) {
@@ -363,7 +381,8 @@ public class LoadingActivity extends AppCompatActivity {
             String text = document.select("body").html()
                     .replace("<br>","\n").replaceAll("(?m)^[ \t]*\r?\n", "");
 
-            announcementData.add(new AnnouncementItemData(title,date,text,url));
+            announcementData.add(new AnnouncementItemData(title, date, text, url));
+            SchooledApplication.data.insertDataAnnouncement(title, text, date, url);
         }
         return announcementData;
     }

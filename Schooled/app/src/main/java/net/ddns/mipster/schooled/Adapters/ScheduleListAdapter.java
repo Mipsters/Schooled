@@ -9,6 +9,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.Shape;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import net.ddns.mipster.schooled.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 
 
 public class ScheduleListAdapter extends BaseAdapter {
@@ -34,9 +36,8 @@ public class ScheduleListAdapter extends BaseAdapter {
         this.useHours = useHours;
         this.context = context;
 
-        if(useHours)
-            for(int i = 2; i < this.data.size() - 1; i+= 3)
-                this.data.add((isPre ? 1 : 0) + i, "הפסקה");
+        for(int i = 2 + (this.isPre ? 1 : 0); i < this.data.size() - 1; i += 3)
+            this.data.add(i, "הפסקה");
     }
 
     @Override
@@ -63,20 +64,26 @@ public class ScheduleListAdapter extends BaseAdapter {
         TextView text = (TextView) convertView.findViewById(R.id.text);
 
         String numText = useHours ? (context.getResources().getStringArray(R.array.hours_time)[position + (isPre ? 0 : 1)]) :
-                Integer.toString(position + (isPre ? 0 : 1));
+                data.get(position).equals("הפסקה") ? "  " :
+                        Integer.toString(position < 11 + (isPre ? 1 : 0) ? 2 * (position + (isPre ? 0 : 1) + 1) / 3 : position - 2 - (isPre ? 1 : 0));
 
         num.setText(numText);
 
         text.setText(data.get(position).isEmpty() ? "אין שיעור" : data.get(position));
 
-        if(useHours)
+        int dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+
+        if(dayOfWeek != 7 && dayOfWeek != 6)
             try {
-                String[] arr = numText.split("\n");
-                if (arr.length > 1 && HourTime.isNowInRange(HourTime.parse(arr[0]), HourTime.parse(arr[1])))
+                String[] arr = context.getResources().getStringArray(R.array.hours_time)[position + (isPre ? 0 : 1)].split("\n");
+                if (arr.length > 1 && HourTime.isNowInRange(HourTime.parse(arr[0]), HourTime.parse(arr[1]))) {
                     if (data.get(position).equals("הפסקה"))
-                        convertView.setBackgroundColor(Color.parseColor("#33CCFF"));
+                        convertView.setBackgroundColor(Color.parseColor("#5C6BC0"));
                     else
-                        convertView.setBackgroundColor(Color.parseColor("#FFFC7F"));
+                        convertView.setBackgroundColor(Color.parseColor("#7986CB"));
+                    text.setTextColor(Color.WHITE);
+                    num.setTextColor(Color.WHITE);
+                }
             }catch (Exception e){
                 e.printStackTrace();
             }

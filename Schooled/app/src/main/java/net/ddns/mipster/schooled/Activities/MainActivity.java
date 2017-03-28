@@ -25,6 +25,8 @@ import net.ddns.mipster.schooled.SchooledApplication;
 
 import java.util.ArrayList;
 
+import klogi.com.RtlViewPager;
+
 public class MainActivity extends AppCompatActivity {
 
     /**
@@ -56,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager = (RtlViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         mViewPager.setCurrentItem(1);

@@ -1,6 +1,7 @@
 package net.ddns.mipster.schooled;
 
 import android.app.Application;
+import android.util.Log;
 
 
 /**
@@ -17,10 +18,14 @@ public class SchooledApplication extends Application {
     public static final String CLASSES_DATA = "net.ddns.mipster.schooled.classesData";
     public static final String SWITCH_DATA = "net.ddns.mipster.schooled.switchData";
 
+    public static SQLiteHelper data;
+
     public SchooledApplication(){}
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        data = new SQLiteHelper(getApplicationContext());
     }
 }

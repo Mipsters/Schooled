@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import net.ddns.mipster.schooled.adapters.NoteListAdapter;
 import net.ddns.mipster.schooled.classes.NoteData;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 public class NoteFragment extends Fragment {
 
     ListView listView;
+    TextView gone;
     ArrayList<NoteData> noteData;
     String[] classes;
 
@@ -45,6 +47,7 @@ public class NoteFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_note, container, false);
 
         listView = (ListView) rootView.findViewById(R.id.listView);
+        gone = (TextView) rootView.findViewById(R.id.gone);
 
         return rootView;
     }
@@ -56,8 +59,13 @@ public class NoteFragment extends Fragment {
         noteData = (ArrayList<NoteData>) getArguments().getSerializable(SchooledApplication.NOTE_DATA);
         classes = getArguments().getStringArray(SchooledApplication.CLASSES_DATA);
 
-        NoteListAdapter adapter = new NoteListAdapter(getContext(), noteData);
+        if(!noteData.isEmpty()) {
+            NoteListAdapter adapter = new NoteListAdapter(getContext(), noteData, classes);
 
-        listView.setAdapter(adapter);
+            listView.setAdapter(adapter);
+        } else {
+            listView.setVisibility(View.GONE);
+            gone.setVisibility(View.VISIBLE);
+        }
     }
 }

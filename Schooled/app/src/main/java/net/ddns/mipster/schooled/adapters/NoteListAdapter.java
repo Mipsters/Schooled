@@ -8,6 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import net.ddns.mipster.schooled.R;
+import net.ddns.mipster.schooled.SchooledApplication;
 import net.ddns.mipster.schooled.classes.NoteData;
 
 import java.util.List;
@@ -20,10 +21,12 @@ public class NoteListAdapter extends BaseAdapter {
 
     private Context context;
     private List<NoteData> data;
+    private String[] classes;
 
-    public NoteListAdapter(Context context, List<NoteData> data){
+    public NoteListAdapter(Context context, List<NoteData> data, String[] classes){
         this.context = context;
         this.data = data;
+        this.classes = classes;
     }
 
     @Override
@@ -48,7 +51,26 @@ public class NoteListAdapter extends BaseAdapter {
         TextView text = (TextView) convertView.findViewById(R.id.text),
                  info = (TextView) convertView.findViewById(R.id.info);
 
-        text.setText(data.get(position).getText());
+        NoteData data = this.data.get(position);
+
+        text.setText(data.getText());
+
+        String classSelect = "ההודעה מופיעה מתחת לכיתות: ";
+
+        for(int i = data.getX1(); i < data.getX2(); i++)
+            classSelect += classes[i - 1] + ", ";
+        classSelect += classes[data.getX2() - 1];
+
+
+        if(data.getY1() != data.getY2()) {
+            classSelect += "\nובין השעות ";
+            classSelect += (data.getY1() - SchooledApplication.FIRST_LINE - 1)
+                    + " ל " +
+                    (data.getY2() - SchooledApplication.FIRST_LINE - 1);
+        } else
+            classSelect += "\nבשעה " + (data.getY1() - SchooledApplication.FIRST_LINE - 1);
+
+        info.setText(classSelect);
 
         return convertView;
     }

@@ -1,6 +1,7 @@
 package net.ddns.mipster.schooled.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -12,11 +13,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -72,6 +77,7 @@ public class ScheduleFragment extends Fragment {
     private SwipeRefreshLayout swipeRefreshLayout;
     private AppBarLayout appBarLayout;
     private Switch aSwitch;
+    private ImageView share;
     private String[][] excelData;
     private String[] classes;
     private SharedPreferences sharedPref;
@@ -102,6 +108,7 @@ public class ScheduleFragment extends Fragment {
         aSwitch = (Switch) rootView.findViewById(R.id.switch1);
         swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefreshLayout);
         appBarLayout = (AppBarLayout) rootView.findViewById(R.id.appBar);
+        share = (ImageView) rootView.findViewById(R.id.share);
 
         return rootView;
     }
@@ -171,7 +178,9 @@ public class ScheduleFragment extends Fragment {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new GeneralDataTask().execute();
+                //new GeneralDataTask().execute();
+                startActivity(new Intent(getContext(), LoadingActivity.class));
+                getActivity().finish();
             }
         });
 
@@ -196,6 +205,39 @@ public class ScheduleFragment extends Fragment {
                 sharedPref.edit().putBoolean(SchooledApplication.SWITCH_DATA,aSwitch.isChecked()).apply();
             }
         });
+
+        share.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, scheduleText());
+                sendIntent.setType("text/plain");
+                startActivity(sendIntent);
+            }
+        });
+    }
+
+    private String scheduleText(){
+        String text = "";
+
+        int len = excelData[1 + spinner.getSelectedItemPosition()].length - 1;
+
+        for(; excelData[1 + spinner.getSelectedItemPosition()][len] == null || excelData[1 + spinner.getSelectedItemPosition()][len].isEmpty(); len--);
+
+        text += "המערכת ל" + day.getText() + ", כיתה " + classes[spinner.getSelectedItemPosition()] + "\n";
+
+        for (int i = 2; i < len - 1; i++) {
+            String time = Integer.toString(i - 1 - (deleted.getItem2() ? 1 : 0)) + ". ";
+            String classText = excelData[1 + spinner.getSelectedItemPosition()][i].replaceAll("(?m)[ \t]*\r?\n", "").replace('\n',' ');
+            text += time + (classText.isEmpty() ? "אין שיעור" : classText) + '\n';
+        }
+
+        String time = Integer.toString(len - 1 - (deleted.getItem2() ? 1 : 0)) + ". ";
+        String classText = excelData[1 + spinner.getSelectedItemPosition()][len].replaceAll("(?m)^[ \t]*\r?\n", "").replace('\n',' ');
+        text += time + (classText.isEmpty() ? "אין שיעור" : classText);
+
+        return text;
     }
 
     @Override
@@ -273,7 +315,7 @@ public class ScheduleFragment extends Fragment {
         private Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
             for(AnnouncementItemData id : announcementData)
                 if(id.getUrl().contains("s3-eu-west-1.amazonaws.com/schooly/handasaim/news") &&
-                        (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
+                        id.getTitle().contains("מערכת שעות") && (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
                     boolean isX = id.getUrl().contains(".xlsx");
                     String date = id.getDate();
 
