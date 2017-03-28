@@ -229,12 +229,12 @@ public class ScheduleFragment extends Fragment {
 
         for (int i = 2; i < len - 1; i++) {
             String time = Integer.toString(i - 1 - (deleted.getItem2() ? 1 : 0)) + ". ";
-            String classText = excelData[1 + spinner.getSelectedItemPosition()][i].replaceAll("(?m)[ \t]*\r?\n", "").replace('\n',' ');
+            String classText = excelData[1 + spinner.getSelectedItemPosition()][i].replaceAll("(?:\\n)+", ", ");
             text += time + (classText.isEmpty() ? "אין שיעור" : classText) + '\n';
         }
 
         String time = Integer.toString(len - 1 - (deleted.getItem2() ? 1 : 0)) + ". ";
-        String classText = excelData[1 + spinner.getSelectedItemPosition()][len].replaceAll("(?m)^[ \t]*\r?\n", "").replace('\n',' ');
+        String classText = excelData[1 + spinner.getSelectedItemPosition()][len].replaceAll("(?:\\n)+", ", ");
         text += time + (classText.isEmpty() ? "אין שיעור" : classText);
 
         return text;
