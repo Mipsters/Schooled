@@ -59,7 +59,7 @@ public class NoteFragment extends Fragment {
         noteData = (ArrayList<NoteData>) getArguments().getSerializable(SchooledApplication.NOTE_DATA);
         classes = getArguments().getStringArray(SchooledApplication.CLASSES_DATA);
 
-        if(!noteData.isEmpty()) {
+        if(noteData != null && !noteData.isEmpty()) {
             NoteListAdapter adapter = new NoteListAdapter(getContext(), noteData, classes);
 
             listView.setAdapter(adapter);
