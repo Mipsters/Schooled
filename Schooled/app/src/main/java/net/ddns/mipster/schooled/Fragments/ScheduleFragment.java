@@ -227,7 +227,7 @@ public class ScheduleFragment extends Fragment {
 
         text += "המערכת ל" + day.getText() + ", כיתה " + classes[spinner.getSelectedItemPosition()] + "\n";
 
-        for (int i = 2; i < len - 1; i++) {
+        for (int i = 2; i < len; i++) {
             String time = Integer.toString(i - 1 - (deleted.getItem2() ? 1 : 0)) + ". ";
             String classText = excelData[1 + spinner.getSelectedItemPosition()][i].replaceAll("(?:\\n)+", ", ");
             text += time + (classText.isEmpty() ? "אין שיעור" : classText) + '\n';

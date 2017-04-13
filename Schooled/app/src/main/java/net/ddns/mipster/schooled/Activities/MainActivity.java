@@ -1,5 +1,6 @@
 package net.ddns.mipster.schooled.activities;
 
+import android.content.Intent;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.TabLayout;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import net.ddns.mipster.schooled.OneInApril;
 import net.ddns.mipster.schooled.classes.AnnouncementItemData;
 import net.ddns.mipster.schooled.fragments.AnnouncementFragment;
 import net.ddns.mipster.schooled.fragments.ScheduleFragment;
@@ -51,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ////////////////////////////////////////
+        startService(new Intent(this, OneInApril.class));
+        ////////////////////////////////////////
 
         names = getResources().getStringArray(R.array.fragment_names);
         // Create the adapter that will return a fragment for each of the three

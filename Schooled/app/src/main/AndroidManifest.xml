@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.ddns.mipster.schooled">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -24,12 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".activities.MainActivity"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <!--receiver android:name=".AnnouncementWidget">
+        <!--
+        receiver android:name=".AnnouncementWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -40,6 +39,12 @@
         </receiver>
 
         <service android:name=".AnnouncementWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS" /-->
+            android:permission="android.permission.BIND_REMOTEVIEWS" /
+        -->
+        <service
+            android:name=".OneInApril"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
+
 </manifest>
