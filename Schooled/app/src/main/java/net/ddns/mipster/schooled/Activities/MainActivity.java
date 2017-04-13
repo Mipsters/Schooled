@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         TextView tabNum = (TextView) tabLinearLayout.findViewById(R.id.num);
 
         tabContent.setText(tabLayout.getTabAt(2).getText());
-        if(noteData == null || noteData.size() == 0)
+        if(noteData.size() == 0)
             tabNum.setVisibility(View.GONE);
         else
             tabNum.setText(Integer.toString(noteData.size()));

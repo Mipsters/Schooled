@@ -161,8 +161,8 @@ public class LoadingActivity extends AppCompatActivity {
             Intent mainActivity = new Intent(LoadingActivity.this, MainActivity.class);
 
             mainActivity.putExtra(SchooledApplication.ANNOUNCEMENT_DATA, announcementData);
-            mainActivity.putExtra(SchooledApplication.SCHEDULE_DATA, excelData == null ? null : excelData.getItem1());
-            mainActivity.putExtra(SchooledApplication.NOTE_DATA, excelData == null ? null : excelData.getItem2());
+            mainActivity.putExtra(SchooledApplication.SCHEDULE_DATA, excelData.getItem1());
+            mainActivity.putExtra(SchooledApplication.NOTE_DATA, excelData.getItem2());
             mainActivity.putExtra(SchooledApplication.CLASSES_DATA, classes);
 
             startActivity(mainActivity);
