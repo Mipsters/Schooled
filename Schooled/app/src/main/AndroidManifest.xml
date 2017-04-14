@@ -41,10 +41,6 @@
         <service android:name=".AnnouncementWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS" /
         -->
-        <service
-            android:name=".OneInApril"
-            android:enabled="true"
-            android:exported="true"></service>
     </application>
 
 </manifest>
