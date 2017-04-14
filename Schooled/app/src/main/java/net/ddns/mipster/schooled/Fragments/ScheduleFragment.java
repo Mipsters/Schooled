@@ -3,6 +3,7 @@ package net.ddns.mipster.schooled.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import net.ddns.mipster.schooled.SQLiteHelper;
 import net.ddns.mipster.schooled.activities.LoadingActivity;
 import net.ddns.mipster.schooled.classes.AnnouncementItemData;
 import net.ddns.mipster.schooled.classes.NoteData;
@@ -76,20 +78,21 @@ public class ScheduleFragment extends Fragment {
     private ListView listView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private AppBarLayout appBarLayout;
+    private Cursor excelData;
     private Switch aSwitch;
     private ImageView share;
-    private String[][] excelData;
     private String[] classes;
+    private String[] classesData;
+    private String dayVal;
     private SharedPreferences sharedPref;
-    private Tuple<String[], Boolean> deleted;
 
     public  ScheduleFragment(){}
 
-    public static ScheduleFragment newInstance(String[][] excelData, String[] classes) {
+    public static ScheduleFragment newInstance(String[] classes, String day) {
         Bundle args = new Bundle();
 
-        args.putSerializable(SchooledApplication.SCHEDULE_DATA, excelData);
         args.putStringArray(SchooledApplication.CLASSES_DATA, classes);
+        args.putString(SchooledApplication.DAY_DATA, day);
 
         ScheduleFragment fragment = new ScheduleFragment();
         fragment.setArguments(args);
@@ -117,21 +120,19 @@ public class ScheduleFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        excelData = (String[][]) getArguments().getSerializable(SchooledApplication.SCHEDULE_DATA);
+        excelData = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.SCHEDULE);
         classes = getArguments().getStringArray(SchooledApplication.CLASSES_DATA);
+        dayVal = getArguments().getString(SchooledApplication.DAY_DATA);
         sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
 
 
-        if(excelData == null || areAllNull(classes)) {
+        if(excelData == null || excelData.getCount() == 0 || classes == null) {
             appBarLayout.setVisibility(View.GONE);
             swipeRefreshLayout.setVisibility(View.GONE);
 
             error.setVisibility(View.VISIBLE);
+            error.setText("אין מערכת");
 
-            if(excelData == null)
-                error.setText("אין מערכת");
-            else
-                error.setText("בעיה בפורמט של הxcel");
             return;
         }
 
@@ -143,16 +144,30 @@ public class ScheduleFragment extends Fragment {
 
         aSwitch.setChecked(sharedPref.getBoolean(SchooledApplication.SWITCH_DATA, false));
 
-        day.setText("יום " + excelData[0][0]);
+        day.setText("יום " + dayVal);
+
+        spinner.setSelection(sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 1) - 1);
+
+        excelData.moveToFirst();
+        classesData = new String[excelData.getCount()];
+
+        for(int j = 0; j < classesData.length; j++, excelData.moveToNext())
+            classesData[j] = excelData.getString(spinner.getSelectedItemPosition());
 
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                deleted = deleteExtra(excelData[i + 1]);
+                //deleted = deleteExtra(excelData[i + 1]);
+                excelData.moveToFirst();
+                classesData = new String[excelData.getCount()];
+
+                for(int j = 0; j < classesData.length; j++, excelData.moveToNext())
+                    classesData[j] = excelData.getString(i);
+
 
                 ScheduleListAdapter scheduleListAdapter =
-                        new ScheduleListAdapter(getContext(), deleted.getItem1(), deleted.getItem2(), aSwitch.isChecked());
+                        new ScheduleListAdapter(getContext(), classesData, aSwitch.isChecked());
                 listView.setAdapter(scheduleListAdapter);
 
                 SharedPreferences.Editor editor = sharedPref.edit();
@@ -163,11 +178,6 @@ public class ScheduleFragment extends Fragment {
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {}
         });
-
-
-        spinner.setSelection(sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 1) - 1);
-        deleted = deleteExtra(excelData[sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 1)]);
-
 
         swipeRefreshLayout.setColorSchemeColors(
                 Color.RED,
@@ -199,13 +209,14 @@ public class ScheduleFragment extends Fragment {
         aSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ScheduleListAdapter scheduleListAdapter = new ScheduleListAdapter(getContext(), deleted.getItem1(), deleted.getItem2(), aSwitch.isChecked());
+                ScheduleListAdapter scheduleListAdapter = new ScheduleListAdapter(getContext(), classesData, aSwitch.isChecked());
                 listView.setAdapter(scheduleListAdapter);
 
                 sharedPref.edit().putBoolean(SchooledApplication.SWITCH_DATA,aSwitch.isChecked()).apply();
             }
         });
 
+        /*
         share.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -216,8 +227,9 @@ public class ScheduleFragment extends Fragment {
                 startActivity(sendIntent);
             }
         });
+        */
     }
-
+/*
     private String scheduleText(){
         String text = "";
 
@@ -239,19 +251,12 @@ public class ScheduleFragment extends Fragment {
 
         return text;
     }
-
+*/
     @Override
     public void onDestroy() {
         super.onDestroy();
 
         sharedPref.edit().putBoolean(SchooledApplication.SWITCH_DATA,aSwitch.isChecked()).apply();
-    }
-
-    private boolean areAllNull(Object[] arr){
-        for(Object obj : arr)
-            if(obj != null)
-                return false;
-        return true;
     }
 
     private Tuple<String[], Boolean> deleteExtra(String[] schedule){
@@ -271,7 +276,7 @@ public class ScheduleFragment extends Fragment {
 
         return new Tuple<>(Arrays.copyOfRange(schedule, SchooledApplication.FIRST_LINE + (isPre ? 1 : 2), /*FIRST_LINE +*/ (isPre ? 1 : 2) + schedule.length - len), isPre);
     }
-
+/*
     class GeneralDataTask extends AsyncTask<Void,Object,Void> {
         private ArrayList<AnnouncementItemData> announcementData;
         private Tuple<String[][], ArrayList<NoteData>> excelData;
@@ -319,24 +324,6 @@ public class ScheduleFragment extends Fragment {
                     boolean isX = id.getUrl().contains(".xlsx");
                     String date = id.getDate();
 
-                    /*
-                    String[] dateInfo = date.split("/");
-                    GregorianCalendar dateGreg = new GregorianCalendar(2000 + Integer.parseInt(dateInfo[2]),
-                            Integer.parseInt(dateInfo[1]) - 1, Integer.parseInt(dateInfo[0]));
-                    dateGreg.add(Calendar.DAY_OF_MONTH, 1);
-                    String finDate = new SimpleDateFormat("dd/MM/yy").format(dateGreg.getTime());
-
-                    dateGreg.add(Calendar.DAY_OF_MONTH, 1);
-                    String finDate2 = new SimpleDateFormat("dd/MM/yy").format(dateGreg.getTime());
-
-                    String nowDate = new SimpleDateFormat("dd-MM-yy").format(Calendar.getInstance().getTime());
-
-                    //nowDate.equals(date) || nowDate.equals(finDate) || id.getDate().equals(finDate2)
-
-                    //getBaseContext().getFileStreamPath("schedule(" + date + ").xls").exists()
-                    */
-
-
                     try {
                         if (!getContext().getApplicationContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists())
                             downloadExcel(id, isX);
@@ -361,11 +348,11 @@ public class ScheduleFragment extends Fragment {
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
             OutputStream output = getContext().getApplicationContext().openFileOutput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"), Context.MODE_PRIVATE);
 
-            byte data[] = new byte[32];
+            byte SQL_DATA[] = new byte[32];
             int count;
 
-            while ((count = input.read(data)) != -1)
-                output.write(data, 0, count);
+            while ((count = input.read(SQL_DATA)) != -1)
+                output.write(SQL_DATA, 0, count);
 
             output.close();
             input.close();
@@ -376,11 +363,6 @@ public class ScheduleFragment extends Fragment {
             String date = itemData.getDate().replace("/","-");
 
             InputStream excelFile = getContext().getApplicationContext().openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
-
-            /*
-            InputStream excelFile = getContext().getAssets().open("TestH.xls");
-            isX = false;
-            */
 
             Workbook workbook;
 
@@ -486,10 +468,10 @@ public class ScheduleFragment extends Fragment {
         }
 
         Elements newsHeadlines = doc.select("marquee > table > tbody > tr > td");
-        String[] data = newsHeadlines.html().split(String.format("(?=%1$s)", "<sup>"));
-        String[] newData = new String[data.length - 1];
+        String[] SQL_DATA = newsHeadlines.html().split(String.format("(?=%1$s)", "<sup>"));
+        String[] newData = new String[SQL_DATA.length - 1];
 
-        System.arraycopy(data,1,newData,0,data.length - 1);
+        System.arraycopy(SQL_DATA,1,newData,0,SQL_DATA.length - 1);
 
         for(String str : newData){
             Document document = Jsoup.parse(str);
@@ -514,4 +496,5 @@ public class ScheduleFragment extends Fragment {
         }
         return announcementData;
     }
+    */
 }

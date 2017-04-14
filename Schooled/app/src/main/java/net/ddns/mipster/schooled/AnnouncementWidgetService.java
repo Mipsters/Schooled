@@ -3,8 +3,6 @@ package net.ddns.mipster.schooled;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Bundle;
-import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -26,7 +24,7 @@ public class AnnouncementWidgetService extends RemoteViewsService {
 
         public ViewsFactory(Context context){
             this.context = context;
-            this.cursor = SchooledApplication.data.getAllData(SQLiteHelper.ANNOUNCEMENT_TABLE);
+            this.cursor = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT);
         }
 
         @Override
@@ -36,14 +34,13 @@ public class AnnouncementWidgetService extends RemoteViewsService {
 
         @Override
         public RemoteViews getViewAt(int position) {
-            RemoteViews row = new RemoteViews(context.getPackageName(),
-                    R.layout.announcement_list_item);
+            RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.announcement_list_item);
 
             cursor.moveToPosition(position);
 
             row.setTextViewText(R.id.title, cursor.getString(0));
-            row.setTextViewText(R.id.text, cursor.getString(1));
-            row.setTextViewText(R.id.date, cursor.getString(2));
+            row.setTextViewText(R.id.text , cursor.getString(1));
+            row.setTextViewText(R.id.date , cursor.getString(2));
 
             return row;
         }

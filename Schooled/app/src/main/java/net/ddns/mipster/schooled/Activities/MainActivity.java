@@ -1,5 +1,6 @@
 package net.ddns.mipster.schooled.activities;
 
+import android.database.Cursor;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import net.ddns.mipster.schooled.classes.AnnouncementItemData;
+import net.ddns.mipster.schooled.SQLiteHelper;
 import net.ddns.mipster.schooled.fragments.AnnouncementFragment;
 import net.ddns.mipster.schooled.fragments.ScheduleFragment;
 import net.ddns.mipster.schooled.fragments.NoteFragment;
@@ -43,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager mViewPager;
 
     private String[] names;
-    private ArrayList<NoteData> noteData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,18 +66,17 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        noteData = (ArrayList<NoteData>)
-                getIntent().getSerializableExtra(SchooledApplication.NOTE_DATA);
+        int length = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.NOTE).getCount();
 
         ConstraintLayout tabLinearLayout = (ConstraintLayout) LayoutInflater.from(this).inflate(R.layout.custom_tab, null);
         TextView tabContent = (TextView) tabLinearLayout.findViewById(R.id.title);
         TextView tabNum = (TextView) tabLinearLayout.findViewById(R.id.num);
 
         tabContent.setText(tabLayout.getTabAt(2).getText());
-        if(noteData.size() == 0)
+        if(length == 0)//noteData == null || noteData.size() == 0)
             tabNum.setVisibility(View.GONE);
         else
-            tabNum.setText(Integer.toString(noteData.size()));
+            tabNum.setText(Integer.toString(length));
 
         tabLayout.getTabAt(2).setCustomView(tabLinearLayout);
     }
@@ -88,23 +87,29 @@ public class MainActivity extends AppCompatActivity {
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+        String[] classes;
+
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
+
+            Cursor c = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.CLASS);
+            classes = new String[c.getCount()];
+
+            c.moveToNext();
+            for(int i = 0; i < classes.length; i++, c.moveToNext())
+                classes[i] = c.getString(0);
+
         }
 
         @Override
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    return AnnouncementFragment.newInstance((ArrayList<AnnouncementItemData>)
-                            getIntent().getSerializableExtra(SchooledApplication.ANNOUNCEMENT_DATA));
+                    return new AnnouncementFragment();
                 case 1:
-                    return ScheduleFragment.newInstance((String[][])
-                            getIntent().getSerializableExtra(SchooledApplication.SCHEDULE_DATA),
-                            getIntent().getStringArrayExtra(SchooledApplication.CLASSES_DATA));
+                    return ScheduleFragment.newInstance(classes, getIntent().getExtras().getString(SchooledApplication.DAY_DATA));
                 case 2:
-                    return NoteFragment.newInstance(noteData,
-                            getIntent().getStringArrayExtra(SchooledApplication.CLASSES_DATA));
+                    return NoteFragment.newInstance(classes);
             }
             return null;
         }

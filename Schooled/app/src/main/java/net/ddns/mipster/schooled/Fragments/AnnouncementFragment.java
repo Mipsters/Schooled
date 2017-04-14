@@ -16,6 +16,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import net.ddns.mipster.schooled.SQLiteHelper;
 import net.ddns.mipster.schooled.classes.AnnouncementItemData;
 import net.ddns.mipster.schooled.adapters.AnnouncementListAdapter;
 import net.ddns.mipster.schooled.activities.LoadingActivity;
@@ -31,21 +32,11 @@ import java.util.ArrayList;
 
 public class AnnouncementFragment extends Fragment {
 
-    private ArrayList<AnnouncementItemData> data;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ListView listView;
 
     public AnnouncementFragment(){}
 
-    public static AnnouncementFragment newInstance(ArrayList<AnnouncementItemData> scheduleData) {
-        Bundle args = new Bundle();
-
-        args.putSerializable(SchooledApplication.ANNOUNCEMENT_DATA, scheduleData);
-
-        AnnouncementFragment fragment = new AnnouncementFragment();
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -62,8 +53,6 @@ public class AnnouncementFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        data = (ArrayList<AnnouncementItemData>)
-                getArguments().getSerializable(SchooledApplication.ANNOUNCEMENT_DATA);
 
         swipeRefreshLayout.setColorSchemeColors(
                 Color.RED,
@@ -78,7 +67,7 @@ public class AnnouncementFragment extends Fragment {
             }
         });
 
-        AnnouncementListAdapter announcementListAdapter = new AnnouncementListAdapter(getContext(), data);
+        AnnouncementListAdapter announcementListAdapter = new AnnouncementListAdapter(getContext(), SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT));
 
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
@@ -96,7 +85,7 @@ public class AnnouncementFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String url = data.get(i).getUrl();
+                String url = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT).getString(3);
                 if(!url.isEmpty())
                     if(isUrlValid(url))
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
@@ -141,7 +130,7 @@ public class AnnouncementFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            listView.setAdapter(new AnnouncementListAdapter(getContext(), announcementData));
+            listView.setAdapter(new AnnouncementListAdapter(getContext(), SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT)));
             swipeRefreshLayout.setRefreshing(false);
         }
     }

@@ -1,6 +1,8 @@
 package net.ddns.mipster.schooled.adapters;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.CursorWrapper;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.LayoutInflater;
@@ -21,6 +23,14 @@ public class AnnouncementListAdapter extends BaseAdapter {
 
     public AnnouncementListAdapter(Context context, ArrayList<AnnouncementItemData> data){
         this.data = data;
+        mInflater = LayoutInflater.from(context);
+    }
+
+    public AnnouncementListAdapter(Context context, Cursor data){
+        this.data = new ArrayList<>();
+
+        while (data.moveToNext())
+            this.data.add(new AnnouncementItemData(data.getString(0),data.getString(2),data.getString(1),data.getString(3)));
         mInflater = LayoutInflater.from(context);
     }
 

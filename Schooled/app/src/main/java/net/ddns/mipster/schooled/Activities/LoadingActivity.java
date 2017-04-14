@@ -1,9 +1,8 @@
 package net.ddns.mipster.schooled.activities;
 
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -13,7 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import net.ddns.mipster.schooled.AnnouncementWidget;
+import net.ddns.mipster.schooled.SQLiteHelper;
 import net.ddns.mipster.schooled.classes.AnnouncementItemData;
 import net.ddns.mipster.schooled.classes.NoteData;
 import net.ddns.mipster.schooled.classes.Tuple;
@@ -78,11 +77,8 @@ public class LoadingActivity extends AppCompatActivity {
     }
 
     class GeneralDataTask extends AsyncTask<Void,Object,Void>{
-        private ArrayList<AnnouncementItemData> announcementData;
-        private Tuple<String[][], ArrayList<NoteData>> excelData;
-        private String[] classes;
-        private String error;
         private TextView stat;
+        private String day;
 
         @Override
         protected void onPreExecute() {
@@ -96,31 +92,11 @@ public class LoadingActivity extends AppCompatActivity {
         protected Void doInBackground(Void... voids) {
             publishProgress("Receiving Announcements");
 
-            announcementData = parseAnnouncementData();
-
-            if(announcementData == null) {
-                cancel(true);
-                error = "Internet connection error";
-                return null;
-            }
+            parseAnnouncementData();
 
             publishProgress("Downloading schedule Excel file");
 
-            excelData = updateSchedule(announcementData);
-
-            publishProgress("Setting things up");
-
-            if(excelData != null) {
-                if (excelData.getItem1()[0][1].isEmpty())
-                    SchooledApplication.FIRST_LINE = 1;
-                else
-                    SchooledApplication.FIRST_LINE = 0;
-
-                classes = new String[excelData.getItem1().length - 1];
-
-                for (int i = 0; i < classes.length; i++)
-                    classes[i] = excelData.getItem1()[i + 1][SchooledApplication.FIRST_LINE].split(" ")[0];
-            }
+            day = updateSchedule();
 
             publishProgress("Starting app");
 
@@ -136,7 +112,7 @@ public class LoadingActivity extends AppCompatActivity {
         protected void onCancelled() {
             stat.setText("");
 
-            Snackbar.make(findViewById(R.id.activity_loading), error, Snackbar.LENGTH_INDEFINITE)
+            Snackbar.make(findViewById(R.id.activity_loading), "a problem occurred", Snackbar.LENGTH_INDEFINITE)
                     .setAction("retry", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -160,19 +136,24 @@ public class LoadingActivity extends AppCompatActivity {
             */
             Intent mainActivity = new Intent(LoadingActivity.this, MainActivity.class);
 
-            mainActivity.putExtra(SchooledApplication.ANNOUNCEMENT_DATA, announcementData);
-            mainActivity.putExtra(SchooledApplication.SCHEDULE_DATA, excelData.getItem1());
-            mainActivity.putExtra(SchooledApplication.NOTE_DATA, excelData.getItem2());
-            mainActivity.putExtra(SchooledApplication.CLASSES_DATA, classes);
+            mainActivity.putExtra(SchooledApplication.DAY_DATA, day);
 
             startActivity(mainActivity);
             finish();
         }
 
-        private Tuple<String[][], ArrayList<NoteData>> updateSchedule(ArrayList<AnnouncementItemData> announcementData){
-            for(AnnouncementItemData id : announcementData)
-                if(id.getUrl().contains("s3-eu-west-1.amazonaws.com/schooly/handasaim/news") &&
-                        id.getTitle().contains("מערכת שעות") && (id.getUrl().contains(".xls") || id.getUrl().contains(".xlsx"))){
+        private String updateSchedule(){
+            Cursor c = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT);
+            while(c.moveToNext()) {
+                AnnouncementItemData id = new AnnouncementItemData(c.getString(0),c.getString(2),c.getString(1),c.getString(3)) ;
+                if (id.getUrl().contains("s3-eu-west-1.amazonaws.com/schooly/handasaim/news") &&
+                        id.getTitle().contains("מערכת שעות") && (id.getUrl().contains(".xls") ||
+                        id.getUrl().contains(".xlsx"))
+                        /////////////////////////////////////////
+                        //TODO: remove this part
+                        // || true
+                        /////////////////////////////////////////
+                        ) {
                     boolean isX = id.getUrl().contains(".xlsx");
                     String date = id.getDate();
 
@@ -196,20 +177,21 @@ public class LoadingActivity extends AppCompatActivity {
 
                     try {
                         if (!getApplicationContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists()) {
-                            Log.i("updateSchedule","file did not exist");
+                            Log.i("updateSchedule", "file did not exist");
                             downloadExcel(id, isX);
                         } else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17) {
                             Log.i("updateSchedule", "the time is after five pm");
                             downloadExcel(id, isX);
                         } else
-                            Log.i("updateSchedule","used existing file");
+                            Log.i("updateSchedule", "used existing file");
 
                         return goThroughExcel(id, isX);
-                    }catch (IOException e){
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                     break;
                 }
+            }
             return null;
         }
 
@@ -233,15 +215,15 @@ public class LoadingActivity extends AppCompatActivity {
             input.close();
         }
 
-        private Tuple<String[][], ArrayList<NoteData>> goThroughExcel(AnnouncementItemData itemData, boolean isX) throws IOException {
-            String[][] excelData;
+        private String goThroughExcel(AnnouncementItemData itemData, boolean isX) throws IOException {
             String date = itemData.getDate().replace("/","-");
 
-            SchooledApplication.data.resetNote();
+            SchooledApplication.SQL_DATA.resetNote();
 
+            //TODO: remember to roll this back
             ///////////////////////////////////////////////////////
             //InputStream excelFile = getAssets().open("TestH.xls");
-            //end = "xls";
+            //isX = false;
             ///////////////////////////////////////////////////////
 
             InputStream excelFile = getApplicationContext().openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
@@ -257,24 +239,36 @@ public class LoadingActivity extends AppCompatActivity {
             Sheet sheet = workbook.getSheetAt(0);
             FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
 
+            String day = getCellAsString(sheet.getRow(0), 0, formulaEvaluator);
+
+            if(getCellAsString(sheet.getRow(0), 1, formulaEvaluator).isEmpty())
+                SchooledApplication.FIRST_LINE = 1;
+
             int rowsCount = sheet.getPhysicalNumberOfRows();
+            int maxCols = 0;
 
-            int maxRows = 0;
             for (int r = 0; r < rowsCount; r++)
-                if(sheet.getRow(r).getPhysicalNumberOfCells() > maxRows)
-                    maxRows = sheet.getRow(r).getPhysicalNumberOfCells();
+                if(sheet.getRow(r).getPhysicalNumberOfCells() > maxCols)
+                    maxCols = sheet.getRow(r).getPhysicalNumberOfCells();
 
+            for(int i = 1; i < maxCols; i++)
+                SchooledApplication.SQL_DATA.insertDataClass(getCellAsString(sheet.getRow(SchooledApplication.FIRST_LINE),i,formulaEvaluator));
 
-            excelData = new String[maxRows][rowsCount];
+            SchooledApplication.SQL_DATA.createScheduleTable(maxCols - 1);
 
             for (int r = 0; r < rowsCount; r++) {
                 Row row = sheet.getRow(r);
+                String[] cells = new String[maxCols - 1];
+
                 for (int c = 0; c < row.getPhysicalNumberOfCells(); c++)
-                    excelData[c][r] = getCellAsString(row, c, formulaEvaluator);
+                    if(c != 0 && r > SchooledApplication.FIRST_LINE)
+                        cells[c - 1] = getCellAsString(row, c, formulaEvaluator);
+
+                if(r > SchooledApplication.FIRST_LINE)
+                    if(!(r == rowsCount - 1 && allNull(cells)))
+                        SchooledApplication.SQL_DATA.insertDataSchedule(cells);
             }
 
-
-            ArrayList<NoteData> noteData = new ArrayList<>();
 
             if((isX ?
                     ((XSSFSheet) sheet).getDrawingPatriarch() :
@@ -292,24 +286,26 @@ public class LoadingActivity extends AppCompatActivity {
                         XSSFSimpleShape shape = (XSSFSimpleShape) it.next();
                         XSSFClientAnchor anchor = (XSSFClientAnchor) shape.getAnchor();
                         String str = shape.getText();
-                        noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
-                                anchor.getCol2(), anchor.getRow2(), str));
-                        SchooledApplication.data.insertDataNote(anchor.getCol1(), anchor.getRow1(),
+                        SchooledApplication.SQL_DATA.insertDataNote(anchor.getCol1(), anchor.getRow1(),
                                 anchor.getCol2(), anchor.getRow2(), str);
                     } else {
                         HSSFSimpleShape shape = (HSSFSimpleShape) it.next();
                         HSSFClientAnchor anchor = (HSSFClientAnchor) shape.getAnchor();
                         HSSFRichTextString richString = shape.getString();
                         String str = richString.getString();
-                        noteData.add(new NoteData(anchor.getCol1(), anchor.getRow1(),
-                                anchor.getCol2(), anchor.getRow2(), str));
-                        SchooledApplication.data.insertDataNote(anchor.getCol1(), anchor.getRow1(),
+                        SchooledApplication.SQL_DATA.insertDataNote(anchor.getCol1(), anchor.getRow1(),
                                 anchor.getCol2(), anchor.getRow2(), str);
                     }
                 }
             }
+            return day;
+        }
 
-            return new Tuple<>(excelData, noteData);
+        private boolean allNull(String[] data){
+            for(String str : data)
+                if(str != null)
+                    return false;
+            return true;
         }
 
         private String getCellAsString(Row row, int c, FormulaEvaluator formulaEvaluator) {
@@ -348,7 +344,7 @@ public class LoadingActivity extends AppCompatActivity {
         ArrayList<AnnouncementItemData> announcementData = new ArrayList<>();
         Document doc;
 
-        SchooledApplication.data.resetAnnouncement();
+        SchooledApplication.SQL_DATA.resetAnnouncement();
 
         try {
             doc = Jsoup.connect("http://www.handasaim.co.il/").get();
@@ -382,7 +378,7 @@ public class LoadingActivity extends AppCompatActivity {
                     .replace("<br>","\n").replaceAll("(?m)^[ \t]*\r?\n", "");
 
             announcementData.add(new AnnouncementItemData(title, date, text, url));
-            SchooledApplication.data.insertDataAnnouncement(title, text, date, url);
+            SchooledApplication.SQL_DATA.insertDataAnnouncement(title, text, date, url);
         }
         return announcementData;
     }

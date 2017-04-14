@@ -1,6 +1,7 @@
 package net.ddns.mipster.schooled.adapters;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
 import net.ddns.mipster.schooled.classes.NoteData;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,13 +23,22 @@ import java.util.List;
 public class NoteListAdapter extends BaseAdapter {
 
     private Context context;
-    private List<NoteData> data;
+    private ArrayList<NoteData> data;
     private String[] classes;
 
-    public NoteListAdapter(Context context, List<NoteData> data, String[] classes){
+    public NoteListAdapter(Context context, ArrayList<NoteData> data, String[] classes){
         this.context = context;
         this.data = data;
         this.classes = classes;
+    }
+
+    public NoteListAdapter(Context context, Cursor data, String[] classes){
+        this.context = context;
+        this.classes = classes;
+        this.data = new ArrayList<>();
+
+        while (data.moveToNext())
+            this.data.add(new NoteData(data.getInt(0),data.getInt(1),data.getInt(2),data.getInt(3),data.getString(4)));
     }
 
     @Override

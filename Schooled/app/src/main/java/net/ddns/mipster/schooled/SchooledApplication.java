@@ -1,7 +1,6 @@
 package net.ddns.mipster.schooled;
 
 import android.app.Application;
-import android.util.Log;
 
 
 /**
@@ -10,15 +9,15 @@ import android.util.Log;
 
 public class SchooledApplication extends Application {
 
-    public static int FIRST_LINE = 0;
-
-    public static final String ANNOUNCEMENT_DATA = "net.ddns.mipster.schooled.announcementData";
+    //public static final String ANNOUNCEMENT_DATA = "net.ddns.mipster.schooled.announcementData";
     public static final String SCHEDULE_DATA = "net.ddns.mipster.schooled.scheduleData";
     public static final String NOTE_DATA = "net.ddns.mipster.schooled.noteData";
     public static final String CLASSES_DATA = "net.ddns.mipster.schooled.classesData";
     public static final String SWITCH_DATA = "net.ddns.mipster.schooled.switchData";
+    public static final String DAY_DATA = "net.ddns.mipster.schooled.dayData";
 
-    public static SQLiteHelper data;
+    public static int FIRST_LINE = 0;
+    public static SQLiteHelper SQL_DATA;
 
     public SchooledApplication(){}
 
@@ -26,6 +25,6 @@ public class SchooledApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        data = new SQLiteHelper(getApplicationContext());
+        SQL_DATA = new SQLiteHelper(getApplicationContext());
     }
 }

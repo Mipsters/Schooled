@@ -33,7 +33,7 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
-            <meta-data
+            <meta-SQL_DATA
                 android:name="android.appwidget.provider"
                 android:resource="@xml/announcement_widget_info" />
         </receiver>

@@ -30,9 +30,9 @@ public class ScheduleListAdapter extends BaseAdapter {
     private boolean useHours;
     private Context context;
 
-    public ScheduleListAdapter(Context context, String[] data, boolean isPre, boolean useHours){
+    public ScheduleListAdapter(Context context, String[] data, boolean useHours){
         this.data = new ArrayList<>(Arrays.asList(data));
-        this.isPre = isPre;
+        this.isPre = !data[0].isEmpty();
         this.useHours = useHours;
         this.context = context;
 

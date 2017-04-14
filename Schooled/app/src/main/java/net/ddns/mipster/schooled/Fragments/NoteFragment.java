@@ -1,5 +1,6 @@
 package net.ddns.mipster.schooled.fragments;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -9,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import net.ddns.mipster.schooled.SQLiteHelper;
 import net.ddns.mipster.schooled.adapters.NoteListAdapter;
 import net.ddns.mipster.schooled.classes.NoteData;
 import net.ddns.mipster.schooled.R;
@@ -24,20 +26,19 @@ public class NoteFragment extends Fragment {
 
     ListView listView;
     TextView gone;
-    ArrayList<NoteData> noteData;
     String[] classes;
 
     public NoteFragment(){}
 
-    public static NoteFragment newInstance(ArrayList<NoteData> noteData, String[] classes) {
+    public static NoteFragment newInstance(String[] classes) {
         
         Bundle args = new Bundle();
 
-        args.putSerializable(SchooledApplication.NOTE_DATA, noteData);
         args.putStringArray(SchooledApplication.CLASSES_DATA, classes);
         
         NoteFragment fragment = new NoteFragment();
         fragment.setArguments(args);
+
         return fragment;
     }
 
@@ -56,16 +57,15 @@ public class NoteFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        noteData = (ArrayList<NoteData>) getArguments().getSerializable(SchooledApplication.NOTE_DATA);
+        Cursor noteData = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.NOTE);
         classes = getArguments().getStringArray(SchooledApplication.CLASSES_DATA);
 
-        if(!noteData.isEmpty()) {
-            NoteListAdapter adapter = new NoteListAdapter(getContext(), noteData, classes);
-
-            listView.setAdapter(adapter);
-        } else {
+        if(noteData.getCount() == 0) {
             listView.setVisibility(View.GONE);
             gone.setVisibility(View.VISIBLE);
+        } else {
+            NoteListAdapter adapter = new NoteListAdapter(getContext(), noteData, classes);
+            listView.setAdapter(adapter);
         }
     }
 }
