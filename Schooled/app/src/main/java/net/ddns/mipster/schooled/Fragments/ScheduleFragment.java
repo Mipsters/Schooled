@@ -125,9 +125,20 @@ public class ScheduleFragment extends Fragment {
         dayVal = getArguments().getString(SchooledApplication.DAY_DATA);
         sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
 
+        int loc = sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 0);
 
-        if(excelData == null || excelData.getCount() == 0 || classes == null) {
-            appBarLayout.setVisibility(View.GONE);
+        if(excelData != null)
+            if(loc < excelData.getColumnCount())
+                excelData.moveToPosition(sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 0));
+            else {
+                excelData.moveToPosition(0);
+
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt(SchooledApplication.SCHEDULE_DATA, 0);
+                editor.apply();
+            }
+
+        if(excelData == null || excelData.getCount() == 0 || classes == null || classes.length == 0) {
             swipeRefreshLayout.setVisibility(View.GONE);
 
             error.setVisibility(View.VISIBLE);
@@ -141,12 +152,11 @@ public class ScheduleFragment extends Fragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-
         aSwitch.setChecked(sharedPref.getBoolean(SchooledApplication.SWITCH_DATA, false));
 
         day.setText("יום " + dayVal);
 
-        spinner.setSelection(sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 1) - 1);
+        spinner.setSelection(sharedPref.getInt(SchooledApplication.SCHEDULE_DATA, 0));
 
         excelData.moveToFirst();
         classesData = new String[excelData.getCount()];
@@ -158,7 +168,6 @@ public class ScheduleFragment extends Fragment {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                //deleted = deleteExtra(excelData[i + 1]);
                 excelData.moveToFirst();
                 classesData = new String[excelData.getCount()];
 
@@ -171,7 +180,7 @@ public class ScheduleFragment extends Fragment {
                 listView.setAdapter(scheduleListAdapter);
 
                 SharedPreferences.Editor editor = sharedPref.edit();
-                editor.putInt(SchooledApplication.SCHEDULE_DATA, i + 1);
+                editor.putInt(SchooledApplication.SCHEDULE_DATA, i);
                 editor.apply();
             }
 
@@ -188,9 +197,8 @@ public class ScheduleFragment extends Fragment {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                //new GeneralDataTask().execute();
-                startActivity(new Intent(getContext(), LoadingActivity.class));
                 getActivity().finish();
+                startActivity(new Intent(getContext(), LoadingActivity.class));
             }
         });
 
@@ -216,7 +224,6 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
-        /*
         share.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -227,31 +234,31 @@ public class ScheduleFragment extends Fragment {
                 startActivity(sendIntent);
             }
         });
-        */
     }
-/*
+
     private String scheduleText(){
         String text = "";
 
-        int len = excelData[1 + spinner.getSelectedItemPosition()].length - 1;
+        int len = classesData.length - 1;
+        boolean isPre = !classesData[0].isEmpty();
 
-        for(; excelData[1 + spinner.getSelectedItemPosition()][len] == null || excelData[1 + spinner.getSelectedItemPosition()][len].isEmpty(); len--);
+        for(; classesData[len] == null || classesData[len].isEmpty(); len--);
 
         text += "המערכת ל" + day.getText() + ", כיתה " + classes[spinner.getSelectedItemPosition()] + "\n";
 
-        for (int i = 2; i < len; i++) {
-            String time = Integer.toString(i - 1 - (deleted.getItem2() ? 1 : 0)) + ". ";
-            String classText = excelData[1 + spinner.getSelectedItemPosition()][i].replaceAll("(?:\\n)+", ", ");
+        for (int i = (isPre ? 0 : 1); i < len; i++) {
+            String time = Integer.toString(i) + ". ";
+            String classText = classesData[i].replaceAll("(?:\\n)+", ", ");
             text += time + (classText.isEmpty() ? "אין שיעור" : classText) + '\n';
         }
 
-        String time = Integer.toString(len - 1 - (deleted.getItem2() ? 1 : 0)) + ". ";
-        String classText = excelData[1 + spinner.getSelectedItemPosition()][len].replaceAll("(?:\\n)+", ", ");
+        String time = Integer.toString(len) + ". ";
+        String classText = classesData[len].replaceAll("(?:\\n)+", ", ");
         text += time + (classText.isEmpty() ? "אין שיעור" : classText);
 
         return text;
     }
-*/
+
     @Override
     public void onDestroy() {
         super.onDestroy();

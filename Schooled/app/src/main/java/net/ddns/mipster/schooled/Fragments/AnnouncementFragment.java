@@ -1,6 +1,7 @@
 package net.ddns.mipster.schooled.fragments;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -85,7 +86,10 @@ public class AnnouncementFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String url = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT).getString(3);
+                Cursor c = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT);
+                c.move(1 + i);
+
+                String url = c.getString(3);
                 if(!url.isEmpty())
                     if(isUrlValid(url))
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));

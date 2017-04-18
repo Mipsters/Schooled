@@ -130,6 +130,15 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 NOTE_COL_TEXT + " TEXT NOT NULL)");
     }
 
+    public void resetClass() {
+        SQLiteDatabase db = getWritableDatabase();
+
+        db.execSQL("DROP TABLE IF EXISTS " + Tables.CLASS);
+
+        db.execSQL("CREATE TABLE " + Tables.CLASS + " (" +
+                CLASS_COL + " TEXT NOT NULL)");
+    }
+
     public void insertDataNote(int x1, int y1, int x2, int y2, String text){
         SQLiteDatabase db = getWritableDatabase();
 

@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        String[] classes;
+        private String[] classes;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);

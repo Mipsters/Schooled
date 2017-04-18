@@ -2,14 +2,6 @@ package net.ddns.mipster.schooled.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.Shape;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,13 +23,27 @@ public class ScheduleListAdapter extends BaseAdapter {
     private Context context;
 
     public ScheduleListAdapter(Context context, String[] data, boolean useHours){
+        for (int i = data.length - 1; i >= 0 ; i--)
+            if(data[i] == null || data[i].isEmpty())
+                data[i] = null;
+            else break;
+
         this.data = new ArrayList<>(Arrays.asList(data));
-        this.isPre = !data[0].isEmpty();
+        this.isPre = !(data[0] == null || data[0].isEmpty());
         this.useHours = useHours;
         this.context = context;
 
-        for(int i = 2 + (this.isPre ? 1 : 0); i < this.data.size() - 1; i += 3)
+        if(!this.isPre)
+            this.data.remove(0);
+
+        while (this.data.contains(null))
+            this.data.remove(null);
+
+        int i = 2 + (this.isPre ? 1 : 0);
+        while (i < this.data.size()){
             this.data.add(i, "הפסקה");
+            i += 3;
+        }
     }
 
     @Override
@@ -65,7 +71,7 @@ public class ScheduleListAdapter extends BaseAdapter {
 
         String numText = useHours ? (context.getResources().getStringArray(R.array.hours_time)[position + (isPre ? 0 : 1)]) :
                 data.get(position).equals("הפסקה") ? "  " :
-                        Integer.toString(position < 11 + (isPre ? 1 : 0) ? 2 * (position + (isPre ? 0 : 1) + 1) / 3 : position - 2 - (isPre ? 1 : 0));
+                        Integer.toString(2 * (position + (isPre ? 0 : 1) + 1) / 3);
 
         num.setText(numText);
 

@@ -218,8 +218,6 @@ public class LoadingActivity extends AppCompatActivity {
         private String goThroughExcel(AnnouncementItemData itemData, boolean isX) throws IOException {
             String date = itemData.getDate().replace("/","-");
 
-            SchooledApplication.SQL_DATA.resetNote();
-
             //TODO: remember to roll this back
             ///////////////////////////////////////////////////////
             //InputStream excelFile = getAssets().open("TestH.xls");
@@ -243,6 +241,8 @@ public class LoadingActivity extends AppCompatActivity {
 
             if(getCellAsString(sheet.getRow(0), 1, formulaEvaluator).isEmpty())
                 SchooledApplication.FIRST_LINE = 1;
+
+            SchooledApplication.SQL_DATA.resetClass();
 
             int rowsCount = sheet.getPhysicalNumberOfRows();
             int maxCols = 0;
@@ -270,6 +270,8 @@ public class LoadingActivity extends AppCompatActivity {
             }
 
 
+            SchooledApplication.SQL_DATA.resetNote();
+
             if((isX ?
                     ((XSSFSheet) sheet).getDrawingPatriarch() :
                     ((HSSFSheet) sheet).getDrawingPatriarch())
@@ -281,7 +283,7 @@ public class LoadingActivity extends AppCompatActivity {
 
                 Iterator it = children.iterator();
 
-                while (it.hasNext()) {
+                while (it.hasNext())
                     if (isX) {
                         XSSFSimpleShape shape = (XSSFSimpleShape) it.next();
                         XSSFClientAnchor anchor = (XSSFClientAnchor) shape.getAnchor();
@@ -296,7 +298,6 @@ public class LoadingActivity extends AppCompatActivity {
                         SchooledApplication.SQL_DATA.insertDataNote(anchor.getCol1(), anchor.getRow1(),
                                 anchor.getCol2(), anchor.getRow2(), str);
                     }
-                }
             }
             return day;
         }

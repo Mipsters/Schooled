@@ -8,10 +8,11 @@
     <application
         android:name=".SchooledApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_schooled"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".activities.LoadingActivity"
             android:label="@string/app_name"
@@ -23,24 +24,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.MainActivity"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <!--
-        receiver android:name=".AnnouncementWidget">
+        <!--receiver android:name=".AnnouncementWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
-            <meta-SQL_DATA
+            <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/announcement_widget_info" />
         </receiver>
 
         <service android:name=".AnnouncementWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS" /
-        -->
+            android:permission="android.permission.BIND_REMOTEVIEWS" /-->
     </application>
 
 </manifest>
