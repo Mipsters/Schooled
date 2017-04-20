@@ -38,7 +38,6 @@ public class ScheduleFragment extends Fragment {
     private Spinner spinner;
     private ListView listView;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private AppBarLayout appBarLayout;
     private Cursor excelData;
     private Switch aSwitch;
     private ImageView share;
@@ -71,7 +70,6 @@ public class ScheduleFragment extends Fragment {
         listView = (ListView) rootView.findViewById(R.id.listView);
         aSwitch = (Switch) rootView.findViewById(R.id.switch1);
         swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefreshLayout);
-        appBarLayout = (AppBarLayout) rootView.findViewById(R.id.appBar);
         share = (ImageView) rootView.findViewById(R.id.share);
 
         return rootView;
