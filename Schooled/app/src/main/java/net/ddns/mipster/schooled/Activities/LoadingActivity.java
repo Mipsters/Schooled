@@ -60,6 +60,8 @@ public class LoadingActivity extends AppCompatActivity {
     com.wang.avi.AVLoadingIndicatorView progressBar;
     com.wang.avi.AVLoadingIndicatorView progressBarOff;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,13 +92,20 @@ public class LoadingActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
+            day = "";
+
             publishProgress("Receiving Announcements");
 
-            parseAnnouncementData();
+            try {
+                parseAnnouncementData();
 
-            publishProgress("Downloading schedule Excel file");
+                publishProgress("Downloading schedule Excel file");
 
-            day = updateSchedule();
+                day = updateSchedule();
+            } catch (IOException e){
+                cancel(true);
+            }
+
 
             publishProgress("Starting app");
 
@@ -112,8 +121,8 @@ public class LoadingActivity extends AppCompatActivity {
         protected void onCancelled() {
             stat.setText("");
 
-            Snackbar.make(findViewById(R.id.activity_loading), "a problem occurred", Snackbar.LENGTH_INDEFINITE)
-                    .setAction("retry", new View.OnClickListener() {
+            Snackbar.make(findViewById(R.id.activity_loading), "בעית התחברות לאינטרנט", Snackbar.LENGTH_INDEFINITE)
+                    .setAction("נסה שוב", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             new GeneralDataTask().execute();
@@ -126,14 +135,6 @@ public class LoadingActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            /*
-            Intent intent = new Intent(getApplicationContext(),AnnouncementWidget.class);
-            intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-
-            int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), AnnouncementWidget.class));
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
-            sendBroadcast(intent);
-            */
             Intent mainActivity = new Intent(LoadingActivity.this, MainActivity.class);
 
             mainActivity.putExtra(SchooledApplication.DAY_DATA, day);
@@ -142,7 +143,7 @@ public class LoadingActivity extends AppCompatActivity {
             finish();
         }
 
-        private String updateSchedule(){
+        private String updateSchedule() throws IOException{
             Cursor c = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT);
             while(c.moveToNext()) {
                 AnnouncementItemData id = new AnnouncementItemData(c.getString(0),c.getString(2),c.getString(1),c.getString(3)) ;
@@ -174,22 +175,16 @@ public class LoadingActivity extends AppCompatActivity {
                     //getBaseContext().getFileStreamPath("schedule(" + date + ").xls").exists()
                     */
 
+                    if (!getApplicationContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists()) {
+                        Log.i("updateSchedule", "file did not exist");
+                        downloadExcel(id, isX);
+                    } else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17) {
+                        Log.i("updateSchedule", "the time is after five pm");
+                        downloadExcel(id, isX);
+                    } else
+                        Log.i("updateSchedule", "used existing file");
 
-                    try {
-                        if (!getApplicationContext().getFileStreamPath("schedule(" + date.replace("/", "-") + ")" + (isX ? ".xlsx" : ".xls")).exists()) {
-                            Log.i("updateSchedule", "file did not exist");
-                            downloadExcel(id, isX);
-                        } else if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17) {
-                            Log.i("updateSchedule", "the time is after five pm");
-                            downloadExcel(id, isX);
-                        } else
-                            Log.i("updateSchedule", "used existing file");
-
-                        return goThroughExcel(id, isX);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    break;
+                    return goThroughExcel(id, isX);
                 }
             }
             return null;
@@ -220,8 +215,8 @@ public class LoadingActivity extends AppCompatActivity {
 
             //TODO: remember to roll this back
             ///////////////////////////////////////////////////////
-            //InputStream excelFile = getAssets().open("TestH.xls");
-            //isX = false;
+            //InputStream excelFile = getAssets().open("TestHnew.xlsx");
+            //isX = true;
             ///////////////////////////////////////////////////////
 
             InputStream excelFile = getApplicationContext().openFileInput("schedule(" + date + ")" + (isX ? ".xlsx" : ".xls"));
@@ -341,17 +336,12 @@ public class LoadingActivity extends AppCompatActivity {
 
 
     @Nullable
-    public static ArrayList<AnnouncementItemData> parseAnnouncementData(){
-        ArrayList<AnnouncementItemData> announcementData = new ArrayList<>();
+    public static void parseAnnouncementData() throws IOException{
         Document doc;
 
         SchooledApplication.SQL_DATA.resetAnnouncement();
 
-        try {
-            doc = Jsoup.connect("http://www.handasaim.co.il/").get();
-        } catch (java.io.IOException e) {
-            return null;
-        }
+        doc = Jsoup.connect("http://www.handasaim.co.il/").get();
 
         Elements newsHeadlines = doc.select("marquee > table > tbody > tr > td");
         String[] data = newsHeadlines.html().split(String.format("(?=%1$s)", "<sup>"));
@@ -378,9 +368,7 @@ public class LoadingActivity extends AppCompatActivity {
             String text = document.select("body").html()
                     .replace("<br>","\n").replaceAll("(?m)^[ \t]*\r?\n", "");
 
-            announcementData.add(new AnnouncementItemData(title, date, text, url));
             SchooledApplication.SQL_DATA.insertDataAnnouncement(title, text, date, url);
         }
-        return announcementData;
     }
 }

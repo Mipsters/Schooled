@@ -26,12 +26,6 @@ public class NoteListAdapter extends BaseAdapter {
     private ArrayList<NoteData> data;
     private String[] classes;
 
-    public NoteListAdapter(Context context, ArrayList<NoteData> data, String[] classes){
-        this.context = context;
-        this.data = data;
-        this.classes = classes;
-    }
-
     public NoteListAdapter(Context context, Cursor data, String[] classes){
         this.context = context;
         this.classes = classes;
@@ -47,7 +41,7 @@ public class NoteListAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public NoteData getItem(int position) {
         return data.get(position);
     }
 
@@ -69,9 +63,10 @@ public class NoteListAdapter extends BaseAdapter {
 
         String classSelect = "ההודעה מופיעה מתחת לכיתות: ";
 
-        for(int i = data.getX1(); i < data.getX2(); i++)
+        int i;
+        for(i = data.getX1(); i < data.getX2() && i < classes.length; i++)
             classSelect += classes[i - 1] + ", ";
-        classSelect += classes[data.getX2() - 1];
+        classSelect += classes[i < classes.length ? data.getX2() - 1 : classes.length - 1];
 
 
         if(data.getY1() != data.getY2()) {

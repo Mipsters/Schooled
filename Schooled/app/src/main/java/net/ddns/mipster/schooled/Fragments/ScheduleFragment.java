@@ -196,24 +196,25 @@ public class ScheduleFragment extends Fragment {
     }
 
     private String scheduleText(){
-        String text = "";
+        String text = "המערכת ל" + day.getText() + ", כיתה " + classes[spinner.getSelectedItemPosition()] + "\n";
 
-        int len = classesData.length - 1;
-        boolean isPre = !classesData[0].isEmpty();
+        if(classesData[0] != null) {
+            int len = classesData.length - 1;
+            boolean isPre = !classesData[0].isEmpty();
 
-        for(; classesData[len] == null || classesData[len].isEmpty(); len--);
+            for (; classesData[len] == null || classesData[len].isEmpty(); len--) ;
 
-        text += "המערכת ל" + day.getText() + ", כיתה " + classes[spinner.getSelectedItemPosition()] + "\n";
+            for (int i = (isPre ? 0 : 1); i < len; i++) {
+                String time = Integer.toString(i) + ". ";
+                String classText = classesData[i].replaceAll("(?:\\n)+", ", ");
+                text += time + (classText.isEmpty() ? "אין שיעור" : classText) + '\n';
+            }
 
-        for (int i = (isPre ? 0 : 1); i < len; i++) {
-            String time = Integer.toString(i) + ". ";
-            String classText = classesData[i].replaceAll("(?:\\n)+", ", ");
-            text += time + (classText.isEmpty() ? "אין שיעור" : classText) + '\n';
-        }
-
-        String time = Integer.toString(len) + ". ";
-        String classText = classesData[len].replaceAll("(?:\\n)+", ", ");
-        text += time + (classText.isEmpty() ? "אין שיעור" : classText);
+            String time = Integer.toString(len) + ". ";
+            String classText = classesData[len].replaceAll("(?:\\n)+", ", ");
+            text += time + (classText.isEmpty() ? "אין שיעור" : classText);
+        } else
+            text += "אין מערכת";
 
         return text;
     }

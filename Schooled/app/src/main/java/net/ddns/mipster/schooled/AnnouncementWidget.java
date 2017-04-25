@@ -1,12 +1,10 @@
 package net.ddns.mipster.schooled;
 
-import android.app.NotificationManager;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
 
 /**

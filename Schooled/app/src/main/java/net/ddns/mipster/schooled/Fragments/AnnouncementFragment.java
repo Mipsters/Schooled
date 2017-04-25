@@ -24,6 +24,7 @@ import net.ddns.mipster.schooled.activities.LoadingActivity;
 import net.ddns.mipster.schooled.R;
 import net.ddns.mipster.schooled.SchooledApplication;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -54,6 +55,7 @@ public class AnnouncementFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        listView.setAdapter(new AnnouncementListAdapter(getContext(), SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT)));
 
         swipeRefreshLayout.setColorSchemeColors(
                 Color.RED,
@@ -68,8 +70,6 @@ public class AnnouncementFragment extends Fragment {
             }
         });
 
-        AnnouncementListAdapter announcementListAdapter = new AnnouncementListAdapter(getContext(), SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT));
-
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView absListView, int i) {}
@@ -82,12 +82,11 @@ public class AnnouncementFragment extends Fragment {
             }
         });
 
-
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Cursor c = SchooledApplication.SQL_DATA.getAllData(SQLiteHelper.Tables.ANNOUNCEMENT);
-                c.move(1 + i);
+                c.moveToPosition(i);
 
                 String url = c.getString(3);
                 if(!url.isEmpty())
@@ -99,8 +98,6 @@ public class AnnouncementFragment extends Fragment {
                         Snackbar.make(view, "The web page \"" + url + "\" does not exist", Snackbar.LENGTH_LONG).show();
             }
         });
-
-        listView.setAdapter(announcementListAdapter);
     }
 
     private boolean isUrlValid(String url){
@@ -113,22 +110,21 @@ public class AnnouncementFragment extends Fragment {
     }
 
     class GeneralDataTask extends AsyncTask<Void,String,Void> {
-        private ArrayList<AnnouncementItemData> announcementData;
 
         @Override
         protected Void doInBackground(Void... voids) {
-            announcementData = LoadingActivity.parseAnnouncementData();
-
-            if(announcementData == null)
+            try {
+                LoadingActivity.parseAnnouncementData();
+            }catch (IOException e){
                 cancel(true);
-
+            }
             return null;
         }
 
         @Override
         protected void onCancelled() {
             Snackbar.make(getView(),
-                    "Internet connection error",Snackbar.LENGTH_SHORT).show();
+                    "בעית התחברות לאינטרנט", Snackbar.LENGTH_LONG).show();
             swipeRefreshLayout.setRefreshing(false);
         }
 

@@ -2,15 +2,9 @@ package net.ddns.mipster.schooled;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQuery;
-import android.util.Log;
-
-import org.apache.xmlbeans.StringEnumAbstractBase;
 
 /**
  * Created by Chen on 18/03/2017.
