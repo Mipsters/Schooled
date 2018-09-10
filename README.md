@@ -11,4 +11,4 @@ Schooled is an app created for Handasaim high school. It allows users to see the
 # This app is live!
 **you can get it now!**
 
-https://play.google.com/store/apps/details?id=net.ddns.mipster.schooled
+https://play.google.com/store/apps/details?id=net.ddns.mipster.schoolednew
